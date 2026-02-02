@@ -50,7 +50,7 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-background">
       <header className="sticky top-0 z-10 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="container flex h-14 items-center justify-between gap-4 px-4">
+        <div className="flex h-14 w-full items-center justify-between gap-4 px-4 sm:px-6">
           <h2 className="text-lg font-semibold tracking-tight">Trainee Project</h2>
           <div className="flex items-center gap-2">
             <ModeToggle />
@@ -59,7 +59,7 @@ export default function Home() {
         </div>
       </header>
 
-      <main className="container px-4 py-8">
+      <main className="w-full px-4 py-8 sm:px-6">
         {/* Hero / Welcome */}
         <section className="mb-10 rounded-2xl border border-border bg-gradient-to-br from-primary/5 via-card to-primary/10 p-6 shadow-sm md:p-8">
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
