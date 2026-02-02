@@ -1,0 +1,18 @@
+{
+  "name": "trainee-project-management",
+  "private": true,
+  "workspaces": [
+    "client",
+    "server"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "build": "npm --workspace client run build",
+    "dev:client": "npm --workspace client run dev",
+    "dev:server": "npm --workspace server run dev",
+    "start:server": "npm --workspace server run start"
+  }
+}
+
