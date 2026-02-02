@@ -7,10 +7,13 @@ import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { ModeToggle } from '@/components/mode-toggle'
 
+const SIGNUP_QR_URL = 'https://mern-project-management.vercel.app/signup'
+
 export default function SignIn() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
+  const [showQR, setShowQR] = useState(false)
   const navigate = useNavigate()
 
   async function submit(e) {
@@ -80,6 +83,30 @@ export default function SignIn() {
                 )}
               </Button>
             </form>
+            <div className="mt-4 space-y-2 text-center">
+              <Button
+                type="button"
+                variant="outline"
+                className="h-10"
+                onClick={() => setShowQR((v) => !v)}
+              >
+                {showQR ? 'Hide signup QR code' : 'Generate signup QR code'}
+              </Button>
+              {showQR && (
+                <div className="mt-3 flex flex-col items-center gap-2">
+                  <img
+                    src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(
+                      SIGNUP_QR_URL,
+                    )}`}
+                    alt="Signup QR code"
+                    className="border rounded-md"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Ask users to scan this QR code to open the signup page.
+                  </p>
+                </div>
+              )}
+            </div>
             <p className="mt-4 text-center text-sm text-muted-foreground">
               Don&apos;t have an account?{' '}
               <Link to="/signup" className="font-medium text-primary hover:underline">

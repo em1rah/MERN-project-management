@@ -24,6 +24,7 @@ const roles = [
 ]
 
 const courses = ['AWS Gen. AI', 'AWS Cloud Practitioner', 'AWS Certified Solution Architect']
+const SIGNUP_QR_URL = 'https://mern-project-management.vercel.app/signup'
 
 export default function SignUp() {
   const [form, setForm] = useState({
@@ -40,6 +41,7 @@ export default function SignUp() {
 
   const [otherCourseInput, setOtherCourseInput] = useState('')
   const [loading, setLoading] = useState(false)
+  const [showQR, setShowQR] = useState(false)
   const navigate = useNavigate()
 
   function toggleCourse(c) {
@@ -263,6 +265,31 @@ export default function SignUp() {
                   'Create Account'
                 )}
               </Button>
+
+              <div className="mt-4 space-y-2 text-center">
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="h-10"
+                  onClick={() => setShowQR((v) => !v)}
+                >
+                  {showQR ? 'Hide signup QR code' : 'Generate signup QR code'}
+                </Button>
+                {showQR && (
+                  <div className="mt-3 flex flex-col items-center gap-2">
+                    <img
+                      src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(
+                        SIGNUP_QR_URL,
+                      )}`}
+                      alt="Signup QR code"
+                      className="border rounded-md"
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Ask users to scan this QR code to open the signup page.
+                    </p>
+                  </div>
+                )}
+              </div>
 
               <p className="text-center text-sm text-muted-foreground">
                 Already have an account?{' '}
