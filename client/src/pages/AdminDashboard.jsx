@@ -111,8 +111,15 @@ export default function AdminDashboard() {
   const regLabels = regOverTime.map(({ _id }) => `${monthNames[_id.month - 1]} ${_id.year}`)
   const regData = regOverTime.map(({ count }) => count)
 
-  // Roles
-  const byRole = stats?.byRole || []
+  // Roles - sort so "Other" appears last
+  const byRoleRaw = stats?.byRole || []
+  const byRole = [...byRoleRaw].sort((a, b) => {
+    // Put "Other" at the end
+    if (a._id === 'Other') return 1
+    if (b._id === 'Other') return -1
+    // Otherwise maintain original order
+    return 0
+  })
   const coursesPerTrainee = stats?.coursesPerTrainee || []
   const cptOrder = ['0', '1', '2', '3+']
   const cptLabels = cptOrder.map((k) => (k === '3+' ? '3+' : `${k} course${k === '1' ? '' : 's'}`))
@@ -336,26 +343,30 @@ export default function AdminDashboard() {
   const roleDoughnutOptions = {
     responsive: true,
     maintainAspectRatio: true,
-    cutout: '65%',
+    cutout: '45%',
     layout: {
       padding: {
         top: 10,
-        bottom: 10,
+        bottom: 70,
         left: 10,
         right: 10,
       },
     },
     plugins: {
       legend: {
-        position: 'right',
+        position: 'bottom',
+        align: 'center',
         labels: { 
-          padding: 14,
+          padding: 12,
           usePointStyle: true,
           pointStyle: 'circle',
           font: {
             size: 12,
             weight: 500,
           },
+          boxWidth: 12,
+          boxHeight: 12,
+          textAlign: 'left',
           generateLabels: (chart) => {
             const data = chart.data
             const total = data.datasets?.[0]?.data?.reduce((a, b) => a + b, 0) || 0
@@ -417,15 +428,6 @@ export default function AdminDashboard() {
       borderClass: 'border-primary/20',
     },
     {
-      key: 'cert-rate',
-      label: 'Certification interest rate',
-      value: `${certRatePercent}%`,
-      icon: TrendingUp,
-      accent: 'from-amber-500/20 to-amber-500/5',
-      iconBg: 'bg-amber-500/15 text-amber-600 dark:text-amber-400',
-      borderClass: 'border-amber-500/20',
-    },
-    {
       key: 'interested',
       label: 'Certification interested',
       value: stats?.cert.yes || 0,
@@ -442,6 +444,15 @@ export default function AdminDashboard() {
       accent: 'from-rose-500/20 to-rose-500/5',
       iconBg: 'bg-rose-500/15 text-rose-600 dark:text-rose-400',
       borderClass: 'border-rose-500/20',
+    },
+     {
+      key: 'cert-rate',
+      label: 'Certification interest rate',
+      value: `${certRatePercent}%`,
+      icon: TrendingUp,
+      accent: 'from-amber-500/20 to-amber-500/5',
+      iconBg: 'bg-amber-500/15 text-amber-600 dark:text-amber-400',
+      borderClass: 'border-amber-500/20',
     },
   ]
 
@@ -621,9 +632,11 @@ export default function AdminDashboard() {
                         <Briefcase className="h-5 w-5 text-primary" />
                         <CardTitle className="text-base">Role distribution</CardTitle>
                       </CardHeader>
-                      <CardContent>
-                        <div className="h-[280px] flex items-center justify-center">
-                          <Doughnut data={roleChartData} options={roleDoughnutOptions} />
+                      <CardContent className="p-6">
+                        <div className="h-[400px] w-full flex items-center justify-center">
+                          <div className="w-full h-full flex items-center justify-center">
+                            <Doughnut data={roleChartData} options={roleDoughnutOptions} />
+                          </div>
                         </div>
                       </CardContent>
                     </Card>
