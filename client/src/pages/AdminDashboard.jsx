@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import API from '../api'
 import { Pie, Bar, Line, Doughnut } from 'react-chartjs-2'
 import {
@@ -16,6 +16,7 @@ import {
 import UserManagement from './UserManagement'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import {
   Table,
   TableBody,
@@ -43,6 +44,7 @@ import {
   Sparkles,
   ChevronLeft,
   ChevronRight,
+  Upload,
 } from 'lucide-react'
 
 ChartJS.register(
@@ -61,6 +63,9 @@ export default function AdminDashboard() {
   const [stats, setStats] = useState(null)
   const [activeTab, setActiveTab] = useState('dashboard')
   const [enrolledModal, setEnrolledModal] = useState({ open: false, courseName: null, users: [], loading: false })
+  const importInputRef = useRef(null)
+  const [importing, setImporting] = useState(false)
+  const [importMsg, setImportMsg] = useState('')
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(() => {
     try {
       return localStorage.getItem('admin-sidebar-collapsed') === '1'
@@ -78,10 +83,35 @@ export default function AdminDashboard() {
 
   const closeEnrolledModal = () => setEnrolledModal({ open: false, courseName: null, users: [], loading: false })
 
-  useEffect(() => {
+  const fetchStats = () =>
     API.get('/admin/stats')
       .then((r) => setStats(r.data))
       .catch((e) => console.error(e))
+
+  const importCsv = async (file) => {
+    if (!file) return
+    setImportMsg('')
+    setImporting(true)
+    try {
+      const fd = new FormData()
+      fd.append('file', file)
+      const res = await API.post('/admin/users/import-csv', fd)
+      setImportMsg(
+        `Imported: ${res.data?.upsertedCount ?? 0} inserted, ${res.data?.modifiedCount ?? 0} modified` +
+          (res.data?.errorCount ? ` (${res.data.errorCount} row errors)` : ''),
+      )
+      await fetchStats()
+    } catch (e) {
+      console.error(e)
+      setImportMsg(e.response?.data?.msg || 'Failed to import CSV')
+    } finally {
+      setImporting(false)
+      if (importInputRef.current) importInputRef.current.value = ''
+    }
+  }
+
+  useEffect(() => {
+    fetchStats()
   }, [])
 
   useEffect(() => {
@@ -620,10 +650,37 @@ export default function AdminDashboard() {
                       </p>
                     </div>
                   </div>
-                  <Badge variant="secondary" className="w-fit px-4 py-2 text-sm font-medium">
-                    {stats?.totalUsers || 0} total trainees
-                  </Badge>
+                  <div className="flex flex-wrap items-center gap-3">
+                    <Badge variant="secondary" className="w-fit px-4 py-2 text-sm font-medium">
+                      {stats?.totalUsers || 0} total trainees
+                    </Badge>
+                    <a
+                      href="/sample-users-import.csv"
+                      download
+                      className="text-sm font-medium text-primary hover:underline"
+                    >
+                      Sample CSV
+                    </a>
+                    <input
+                      ref={importInputRef}
+                      type="file"
+                      accept=".csv,text/csv"
+                      className="hidden"
+                      onChange={(e) => importCsv(e.target.files?.[0])}
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="h-10"
+                      disabled={importing}
+                      onClick={() => importInputRef.current?.click()}
+                    >
+                      <Upload className="mr-2 h-4 w-4" />
+                      {importing ? 'Importing…' : 'Import CSV'}
+                    </Button>
+                  </div>
                 </div>
+                {!!importMsg && <p className="mt-4 text-sm text-muted-foreground">{importMsg}</p>}
               </section>
 
               {/* Key metrics – 4 cards */}
@@ -782,7 +839,7 @@ export default function AdminDashboard() {
               </section>
             </div>
           ) : (
-            <UserManagement />
+            <UserManagement onImported={fetchStats} />
           )}
         </main>
       </div>

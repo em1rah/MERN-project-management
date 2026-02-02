@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import API from '../api'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
@@ -12,28 +12,52 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import { Users, Search, Inbox, ChevronLeft, ChevronRight } from 'lucide-react'
+import { Search, Inbox, Upload, AlertTriangle, ChevronLeft, ChevronRight } from 'lucide-react'
 
 const PAGE_SIZES = [5, 10, 20, 50]
 
-export default function UserManagement() {
+export default function UserManagement({ onImported }) {
   const [users, setUsers] = useState([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(10)
+  const fileInputRef = useRef(null)
+  const [importing, setImporting] = useState(false)
+  const [importResult, setImportResult] = useState(null)
+  const [importError, setImportError] = useState('')
+
+  const fetchUsers = () =>
+    API.get('/admin/users')
+      .then((r) => setUsers(r.data))
+      .catch((e) => console.error(e))
 
   useEffect(() => {
-    API.get('/admin/users')
-      .then((r) => {
-        setUsers(r.data)
-        setLoading(false)
-      })
-      .catch((e) => {
-        console.error(e)
-        setLoading(false)
-      })
+    setLoading(true)
+    fetchUsers().finally(() => setLoading(false))
   }, [])
+
+  async function importCsv(file) {
+    if (!file) return
+    setImportError('')
+    setImportResult(null)
+    setImporting(true)
+    try {
+      const fd = new FormData()
+      fd.append('file', file)
+      const res = await API.post('/admin/users/import-csv', fd)
+      setImportResult(res.data)
+      await fetchUsers()
+      await onImported?.()
+    } catch (e) {
+      console.error(e)
+      setImportError(e.response?.data?.msg || 'Failed to import CSV')
+    } finally {
+      setImporting(false)
+      // allow re-selecting the same file
+      if (fileInputRef.current) fileInputRef.current.value = ''
+    }
+  }
 
   const filteredUsers = users.filter(
     (u) =>
@@ -63,19 +87,88 @@ export default function UserManagement() {
 
   return (
     <div className="space-y-8">
-   
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="relative w-full max-w-md">
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            type="text"
+            placeholder="Search by name, email, or role..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="h-10 pl-9"
+          />
+        </div>
 
-      <div className="relative max-w-md">
-        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-        <Input
-          type="text"
-          placeholder="Search by name, email, or role..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="h-10 pl-9"
-        />
-        
+        <div className="flex flex-wrap items-center gap-3">
+          <a
+            href="/sample-users-import.csv"
+            download
+            className="text-sm font-medium text-primary hover:underline"
+          >
+            Download sample CSV
+          </a>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".csv,text/csv"
+            className="hidden"
+            onChange={(e) => importCsv(e.target.files?.[0])}
+          />
+          <Button
+            type="button"
+            variant="outline"
+            className="h-10"
+            disabled={importing}
+            onClick={() => fileInputRef.current?.click()}
+          >
+            <Upload className="mr-2 h-4 w-4" />
+            {importing ? 'Importing…' : 'Import CSV'}
+          </Button>
+        </div>
       </div>
+
+      {importError && (
+        <Card className="border-rose-500/30 bg-rose-500/5">
+          <CardContent className="flex items-start gap-3 p-4 text-sm text-rose-700 dark:text-rose-300">
+            <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
+            <div>{importError}</div>
+          </CardContent>
+        </Card>
+      )}
+
+      {importResult && (
+        <Card>
+          <CardContent className="space-y-3 p-4">
+            <div className="flex flex-wrap items-center gap-2 text-sm">
+              <Badge variant="secondary">Processed: {importResult.processedRows}</Badge>
+              <Badge variant="secondary">Unique emails: {importResult.uniqueEmails}</Badge>
+              <Badge variant="secondary">Inserted: {importResult.upsertedCount}</Badge>
+              <Badge variant="secondary">Matched: {importResult.matchedCount}</Badge>
+              <Badge variant="secondary">Modified: {importResult.modifiedCount}</Badge>
+              {importResult.errorCount ? (
+                <Badge variant="outline" className="border-amber-500/50 bg-amber-500/10 text-amber-700 dark:text-amber-300">
+                  Row errors: {importResult.errorCount}
+                </Badge>
+              ) : (
+                <Badge variant="success">No row errors</Badge>
+              )}
+            </div>
+
+            {Array.isArray(importResult.errors) && importResult.errors.length > 0 && (
+              <div className="rounded-lg border border-border bg-muted/20 p-3">
+                <p className="mb-2 text-sm font-medium">Row errors (first 10)</p>
+                <ul className="space-y-1 text-sm text-muted-foreground">
+                  {importResult.errors.slice(0, 10).map((er, i) => (
+                    <li key={`${er.rowNumber}-${i}`}>
+                      Row {er.rowNumber}: {er.email ? `${er.email} — ` : ''}{er.error}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
       
 
       <Card>
