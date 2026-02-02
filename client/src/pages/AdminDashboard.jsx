@@ -216,6 +216,33 @@ export default function AdminDashboard() {
     },
   }
 
+  const cptBarOptions = {
+    indexAxis: 'y',
+    responsive: true,
+    maintainAspectRatio: true,
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        callbacks: {
+          label: (ctx) => `Trainees: ${Math.round(Number(ctx.raw))}`,
+        },
+      },
+    },
+    scales: {
+      x: {
+        beginAtZero: true,
+        grid: { drawBorder: false },
+        ticks: {
+          stepSize: 1,
+          callback: (value) => (Number.isInteger(value) ? value : ''),
+        },
+      },
+      y: {
+        grid: { display: false },
+      },
+    },
+  }
+
   // Check dark mode and set line chart colors
   const isDarkMode = typeof document !== 'undefined' && document.documentElement.classList.contains('dark')
   const lineBorderColor = isDarkMode ? '#818cf8' : '#6366f1' // indigo-400 for dark, indigo-500 for light
@@ -343,30 +370,31 @@ export default function AdminDashboard() {
   const roleDoughnutOptions = {
     responsive: true,
     maintainAspectRatio: true,
-    cutout: '45%',
+    cutout: '50%',
     layout: {
       padding: {
         top: 10,
-        bottom: 70,
+        bottom: 10,
         left: 10,
-        right: 10,
+        right: 80,
       },
     },
     plugins: {
       legend: {
-        position: 'bottom',
+        position: 'right',
         align: 'center',
         labels: { 
-          padding: 12,
+          padding: 10,
           usePointStyle: true,
           pointStyle: 'circle',
           font: {
             size: 12,
             weight: 500,
           },
-          boxWidth: 12,
-          boxHeight: 12,
+          boxWidth: 10,
+          boxHeight: 10,
           textAlign: 'left',
+          maxWidth: 180,
           generateLabels: (chart) => {
             const data = chart.data
             const total = data.datasets?.[0]?.data?.reduce((a, b) => a + b, 0) || 0
@@ -632,9 +660,9 @@ export default function AdminDashboard() {
                         <Briefcase className="h-5 w-5 text-primary" />
                         <CardTitle className="text-base">Role distribution</CardTitle>
                       </CardHeader>
-                      <CardContent className="p-6">
-                        <div className="h-[400px] w-full flex items-center justify-center">
-                          <div className="w-full h-full flex items-center justify-center">
+                      <CardContent>
+                        <div className="h-[280px] w-full flex items-center justify-center">
+                          <div className="w-full  flex items-center ">
                             <Doughnut data={roleChartData} options={roleDoughnutOptions} />
                           </div>
                         </div>
@@ -648,7 +676,7 @@ export default function AdminDashboard() {
                     </CardHeader>
                     <CardContent>
                       <div className="h-[280px]">
-                        <Bar data={cptChartData} options={barOptions} />
+                        <Bar data={cptChartData} options={cptBarOptions} />
                       </div>
                     </CardContent>
                   </Card>
