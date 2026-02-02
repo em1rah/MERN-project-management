@@ -41,6 +41,8 @@ import {
   Briefcase,
   Layers,
   Sparkles,
+  ChevronLeft,
+  ChevronRight,
 } from 'lucide-react'
 
 ChartJS.register(
@@ -59,6 +61,13 @@ export default function AdminDashboard() {
   const [stats, setStats] = useState(null)
   const [activeTab, setActiveTab] = useState('dashboard')
   const [enrolledModal, setEnrolledModal] = useState({ open: false, courseName: null, users: [], loading: false })
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(() => {
+    try {
+      return localStorage.getItem('admin-sidebar-collapsed') === '1'
+    } catch {
+      return false
+    }
+  })
 
   const openEnrolledModal = (courseName) => {
     setEnrolledModal({ open: true, courseName, users: [], loading: true })
@@ -74,6 +83,14 @@ export default function AdminDashboard() {
       .then((r) => setStats(r.data))
       .catch((e) => console.error(e))
   }, [])
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('admin-sidebar-collapsed', isSidebarCollapsed ? '1' : '0')
+    } catch {
+      // ignore storage errors (private mode, disabled storage, etc.)
+    }
+  }, [isSidebarCollapsed])
 
   if (!stats && activeTab === 'dashboard')
     return (
@@ -135,7 +152,7 @@ export default function AdminDashboard() {
         borderWidth: 2,
         hoverOffset: 0,
         // Lift the first slice (Interested) – offset in pixels
-        offset: [18, 0],
+        offset: [52, 0],
       },
     ],
   }
@@ -461,7 +478,7 @@ export default function AdminDashboard() {
       value: stats?.cert.yes || 0,
       icon: UserCheck,
       accent: 'from-emerald-500/20 to-emerald-500/5',
-      iconBg: 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400',
+      iconBg: 'bg-emerald-400/15 text-emerald-600 dark:text-emerald-400',
       borderClass: 'border-emerald-500/20',
     },
     {
@@ -487,13 +504,42 @@ export default function AdminDashboard() {
   return (
     <div className="flex min-h-screen bg-background">
       {/* Sidebar */}
-      <aside className="fixed left-0 top-0 z-40 flex h-screen w-64 flex-col border-r border-border bg-card shadow-sm">
-        <div className="border-b border-border p-6">
-          <div className="mb-3 flex h-11 w-11 items-center justify-center rounded-xl bg-primary text-primary-foreground font-bold text-lg shadow-sm">
-            D
+      <aside
+        className={cn(
+          'fixed left-0 top-0 z-40 flex h-screen flex-col border-r border-border bg-card shadow-sm transition-[width] duration-200',
+          isSidebarCollapsed ? 'w-20' : 'w-64'
+        )}
+      >
+        <div className={cn('border-b border-border', isSidebarCollapsed ? 'p-4' : 'p-6')}>
+          <div className={cn('flex items-start', isSidebarCollapsed ? 'justify-center' : 'justify-between gap-4')}>
+            <div className={cn(isSidebarCollapsed ? 'flex flex-col items-center' : '')}>
+              <div
+                className={cn(
+                  'mb-3 flex h-11 w-11 items-center justify-center rounded-xl bg-primary text-primary-foreground font-bold text-lg shadow-sm',
+                  isSidebarCollapsed ? 'mb-0' : ''
+                )}
+              >
+                D
+              </div>
+              <div className={cn(isSidebarCollapsed ? 'hidden' : 'block')}>
+                <h5 className="font-semibold text-foreground">Trainee Admin</h5>
+                <p className="text-sm text-muted-foreground">Project Management</p>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setIsSidebarCollapsed((v) => !v)}
+              className={cn(
+                'inline-flex items-center justify-center rounded-md border border-border bg-muted/40 text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground',
+                isSidebarCollapsed ? 'mt-3 h-9 w-9' : 'h-9 w-9 shrink-0'
+              )}
+              aria-label={isSidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+              title={isSidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+            >
+              {isSidebarCollapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
+            </button>
           </div>
-          <h5 className="font-semibold text-foreground">Trainee Admin</h5>
-          <p className="text-sm text-muted-foreground">Project Management</p>
         </div>
 
         <nav className="flex-1 space-y-0.5 p-4">
@@ -501,37 +547,47 @@ export default function AdminDashboard() {
             type="button"
             onClick={() => setActiveTab('dashboard')}
             className={cn(
-              'flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors',
+              'flex w-full items-center rounded-lg text-sm font-medium transition-colors',
+              isSidebarCollapsed ? 'justify-center px-2 py-2.5' : 'gap-3 px-3 py-2.5',
               activeTab === 'dashboard'
                 ? 'bg-primary/10 text-primary'
                 : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
             )}
+            aria-label="Dashboard"
+            title="Dashboard"
           >
             <LayoutDashboard className="h-4 w-4 shrink-0" />
-            Dashboard
+            <span className={cn(isSidebarCollapsed ? 'hidden' : 'block')}>Dashboard</span>
           </button>
           <button
             type="button"
             onClick={() => setActiveTab('users')}
             className={cn(
-              'flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors',
+              'flex w-full items-center rounded-lg text-sm font-medium transition-colors',
+              isSidebarCollapsed ? 'justify-center px-2 py-2.5' : 'gap-3 px-3 py-2.5',
               activeTab === 'users'
                 ? 'bg-primary/10 text-primary'
                 : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
             )}
+            aria-label="User Management"
+            title="User Management"
           >
             <Users className="h-4 w-4 shrink-0" />
-            User Management
+            <span className={cn(isSidebarCollapsed ? 'hidden' : 'block')}>User Management</span>
           </button>
         </nav>
 
         <div className="border-t border-border p-4">
-          <LogoutButton variant="outline" showLabel className="w-full gap-2" />
+          <LogoutButton
+            variant="outline"
+            showLabel={!isSidebarCollapsed}
+            className={cn('w-full gap-2', isSidebarCollapsed ? 'justify-center px-2' : '')}
+          />
         </div>
       </aside>
 
       {/* Main */}
-      <div className="ml-64 flex flex-1 flex-col min-w-0">
+      <div className={cn('flex flex-1 flex-col min-w-0 transition-[margin-left] duration-200', isSidebarCollapsed ? 'ml-20' : 'ml-64')}>
         <header className="sticky top-0 z-10 flex h-14 shrink-0 items-center justify-between gap-4 border-b border-border bg-card/95 px-6 backdrop-blur supports-[backdrop-filter]:bg-card/80">
           <h1 className="truncate text-lg font-semibold">
             {activeTab === 'dashboard' ? 'Dashboard' : 'User Management'}
@@ -629,7 +685,7 @@ export default function AdminDashboard() {
                       <CardTitle className="text-base">Certification interest</CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <div className="h-[260px] flex items-center justify-center">
+                      <div className="h-[300px] flex items-center justify-center">
                         <Pie data={certData} options={pieOptions} />
                       </div>
                     </CardContent>
@@ -661,7 +717,7 @@ export default function AdminDashboard() {
                         <CardTitle className="text-base">Role distribution</CardTitle>
                       </CardHeader>
                       <CardContent>
-                        <div className="h-[280px] w-full flex items-center justify-center">
+                        <div className="h-[250px] w-full flex items-center justify-center">
                           <div className="w-full  flex items-center ">
                             <Doughnut data={roleChartData} options={roleDoughnutOptions} />
                           </div>
