@@ -24,7 +24,6 @@ const roles = [
 ]
 
 const courses = ['AWS Gen. AI', 'AWS Cloud Practitioner', 'AWS Certified Solution Architect']
-const SIGNUP_QR_URL = 'https://mern-project-management.vercel.app/signup'
 
 export default function SignUp() {
   const [form, setForm] = useState({
@@ -41,7 +40,6 @@ export default function SignUp() {
 
   const [otherCourseInput, setOtherCourseInput] = useState('')
   const [loading, setLoading] = useState(false)
-  const [showQR, setShowQR] = useState(false)
   const navigate = useNavigate()
 
   function toggleCourse(c) {
@@ -84,15 +82,15 @@ export default function SignUp() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background py-8 px-4">
-      <div className="absolute top-4 right-4">
+    <div className="flex min-h-screen items-center justify-center bg-background px-4 py-10">
+      <div className="absolute right-4 top-4">
         <ModeToggle />
       </div>
       <div className="w-full max-w-2xl">
         <Card className="border-border shadow-lg">
           <CardHeader className="space-y-1 text-center">
-            <CardTitle className="text-2xl font-bold">Create Account</CardTitle>
-            <CardDescription>Join our AWS learning community</CardDescription>
+            <CardTitle className="text-2xl font-bold">Create trainee profile</CardTitle>
+            <CardDescription>Tell us a bit about your background and AWS learning goals.</CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={submit} className="space-y-5">
@@ -121,10 +119,7 @@ export default function SignUp() {
 
               <div className="space-y-2">
                 <Label>Role</Label>
-                <Select
-                  value={form.role}
-                  onValueChange={(value) => setForm({ ...form, role: value })}
-                >
+                <Select value={form.role} onValueChange={(value) => setForm({ ...form, role: value })}>
                   <SelectTrigger className="h-10">
                     <SelectValue placeholder="Select role" />
                   </SelectTrigger>
@@ -151,12 +146,12 @@ export default function SignUp() {
               )}
 
               <div className="space-y-2">
-                <Label className="font-semibold">Courses You&apos;re Interested In</Label>
+                <Label className="font-semibold">Courses you&apos;re interested in</Label>
                 <div className="grid gap-3 sm:grid-cols-2">
                   {courses.map((c) => (
                     <label
                       key={c}
-                      className="flex items-center gap-2 rounded-md border border-input px-3 py-2 text-sm cursor-pointer hover:bg-accent/50 has-[:checked]:bg-accent/50"
+                      className="flex cursor-pointer items-center gap-2 rounded-md border border-input px-3 py-2 text-sm hover:bg-accent/50 has-[:checked]:bg-accent/50"
                     >
                       <input
                         type="checkbox"
@@ -171,7 +166,7 @@ export default function SignUp() {
               </div>
 
               <div className="space-y-2">
-                <Label>Other Course (optional)</Label>
+                <Label>Other course (optional)</Label>
                 <div className="flex gap-2">
                   <Input
                     placeholder="e.g. Azure Fundamentals"
@@ -208,9 +203,9 @@ export default function SignUp() {
               </div>
 
               <div className="space-y-2">
-                <Label className="font-semibold block">Interested in Certification?</Label>
+                <Label className="block font-semibold">Interested in certification?</Label>
                 <div className="flex gap-6">
-                  <label className="flex items-center gap-2 cursor-pointer">
+                  <label className="flex cursor-pointer items-center gap-2">
                     <input
                       type="radio"
                       name="cert"
@@ -220,7 +215,7 @@ export default function SignUp() {
                     />
                     Yes
                   </label>
-                  <label className="flex items-center gap-2 cursor-pointer">
+                  <label className="flex cursor-pointer items-center gap-2">
                     <input
                       type="radio"
                       name="cert"
@@ -258,40 +253,11 @@ export default function SignUp() {
                 </div>
               </div>
 
-              <Button type="submit" className="w-full h-10 mt-2" disabled={loading}>
-                {loading ? (
-                  <span className="animate-pulse">Creating account...</span>
-                ) : (
-                  'Create Account'
-                )}
+              <Button type="submit" className="mt-2 h-10 w-full" disabled={loading}>
+                {loading ? <span className="animate-pulse">Creating account...</span> : 'Create Account'}
               </Button>
 
-              <div className="mt-4 space-y-2 text-center">
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="h-10"
-                  onClick={() => setShowQR((v) => !v)}
-                >
-                  {showQR ? 'Hide signup QR code' : 'Generate signup QR code'}
-                </Button>
-                {showQR && (
-                  <div className="mt-3 flex flex-col items-center gap-2">
-                    <img
-                      src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(
-                        SIGNUP_QR_URL,
-                      )}`}
-                      alt="Signup QR code"
-                      className="border rounded-md"
-                    />
-                    <p className="text-xs text-muted-foreground">
-                      Ask users to scan this QR code to open the signup page.
-                    </p>
-                  </div>
-                )}
-              </div>
-
-              <p className="text-center text-sm text-muted-foreground">
+              <p className="pt-2 text-center text-sm text-muted-foreground">
                 Already have an account?{' '}
                 <Link to="/signin" className="font-medium text-primary hover:underline">
                   Sign in
