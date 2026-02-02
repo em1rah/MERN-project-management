@@ -206,7 +206,7 @@ export default function SignUp() {
               </div>
 
               <div className="space-y-2">
-                <Label className="font-semibold block">Interested in AWS Certification?</Label>
+                <Label className="font-semibold block">Interested in Certification?</Label>
                 <div className="flex gap-6">
                   <label className="flex items-center gap-2 cursor-pointer">
                     <input
