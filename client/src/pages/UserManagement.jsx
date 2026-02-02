@@ -99,7 +99,7 @@ export default function UserManagement({ onImported }) {
           />
         </div>
 
-        <div className="flex flex-wrap items-center gap-3">
+        {/* <div className="flex flex-wrap items-center gap-3">
           <a
             href="/sample-users-import.csv"
             download
@@ -124,7 +124,7 @@ export default function UserManagement({ onImported }) {
             <Upload className="mr-2 h-4 w-4" />
             {importing ? 'Importing…' : 'Import CSV'}
           </Button>
-        </div>
+        </div> */}
       </div>
 
       {importError && (

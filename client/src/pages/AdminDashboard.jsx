@@ -654,13 +654,13 @@ export default function AdminDashboard() {
                     <Badge variant="secondary" className="w-fit px-4 py-2 text-sm font-medium">
                       {stats?.totalUsers || 0} total trainees
                     </Badge>
-                    <a
+                    {/* <a
                       href="/sample-users-import.csv"
                       download
                       className="text-sm font-medium text-primary hover:underline"
                     >
                       Sample CSV
-                    </a>
+                    </a> */}
                     <input
                       ref={importInputRef}
                       type="file"
