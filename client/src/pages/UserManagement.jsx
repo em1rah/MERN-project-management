@@ -1,5 +1,17 @@
 import React, { useEffect, useState } from 'react'
 import API from '../api'
+import { Input } from '@/components/ui/input'
+import { Badge } from '@/components/ui/badge'
+import { Card, CardContent } from '@/components/ui/card'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
+import { Users, Search, Inbox } from 'lucide-react'
 
 export default function UserManagement() {
   const [users, setUsers] = useState([])
@@ -8,99 +20,99 @@ export default function UserManagement() {
 
   useEffect(() => {
     API.get('/admin/users')
-      .then(r => {
+      .then((r) => {
         setUsers(r.data)
         setLoading(false)
       })
-      .catch(e => {
+      .catch((e) => {
         console.error(e)
         setLoading(false)
       })
   }, [])
 
-  const filteredUsers = users.filter(u =>
-    u.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    u.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    u.role.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredUsers = users.filter(
+    (u) =>
+      u.fullName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      u.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      u.role?.toLowerCase().includes(searchTerm.toLowerCase())
   )
 
-  if (loading) return (
-    <div className="text-center py-5">
-      <div className="spinner-border" role="status">
-        <span className="visually-hidden">Loading...</span>
+  if (loading)
+    return (
+      <div className="flex min-h-[200px] items-center justify-center">
+        <div className="text-center">
+          <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+          <p className="mt-3 text-muted-foreground">Loading users...</p>
+        </div>
       </div>
-      <p className="mt-3">Loading users...</p>
-    </div>
-  )
+    )
 
   return (
-    <div>
-      <div className="d-flex justify-content-between align-items-center mb-4">
-        <h3 className="mb-0" style={{ color: '#333', fontWeight: 600 }}>
-          <i className="bi bi-people me-2" style={{ color: '#5856D6' }}></i>User Management
-        </h3>
-        <span className="badge bg-secondary p-2 fs-6">{filteredUsers.length} Users</span>
+    <div className="space-y-4">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        {/* <h2 className="flex items-center gap-2 text-lg font-semibold">
+          <Users className="h-5 w-5 text-primary" />
+          User Management
+        </h2> */}
+        {/* <Badge variant="secondary" className="w-fit px-3 py-1.5">
+          {filteredUsers.length} Users
+        </Badge> */}
       </div>
 
-      {/* Search Bar */}
-      <div className="mb-4">
-        <div className="input-group">
-          <span className="input-group-text" style={{ backgroundColor: '#f5f5f5', border: '1px solid #e0e0e0' }}>
-            <i className="bi bi-search"></i>
-          </span>
-          <input
-            type="text"
-            className="form-control"
-            placeholder="Search by name, email, or role..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            style={{ border: '1px solid #e0e0e0' }}
-          />
-        </div>
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+        <Input
+          type="text"
+          placeholder="Search by name, email, or role..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="h-10 pl-9"
+        />
       </div>
 
-      {/* Users Table */}
-      <div className="card" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.08)', border: 'none' }}>
-        <div className="table-responsive">
-          <table className="table table-hover mb-0">
-            <thead style={{ backgroundColor: '#f8f9fa', borderBottom: '2px solid #e0e0e0' }}>
-              <tr>
-                <th style={{ fontWeight: 600, color: '#666', paddingTop: '15px', paddingBottom: '15px' }}>Full Name</th>
-                <th style={{ fontWeight: 600, color: '#666', paddingTop: '15px', paddingBottom: '15px' }}>Email</th>
-                <th style={{ fontWeight: 600, color: '#666', paddingTop: '15px', paddingBottom: '15px' }}>Role</th>
-                <th style={{ fontWeight: 600, color: '#666', paddingTop: '15px', paddingBottom: '15px' }}>School</th>
-                <th style={{ fontWeight: 600, color: '#666', paddingTop: '15px', paddingBottom: '15px', textAlign: 'center' }}>Certification Interest</th>
-              </tr>
-            </thead>
-            <tbody>
+      <Card>
+        <CardContent className="p-0">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Full Name</TableHead>
+                <TableHead>Email</TableHead>
+                <TableHead>Role</TableHead>
+                <TableHead>School</TableHead>
+                <TableHead className="text-center">Certification Interest</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
               {filteredUsers.length > 0 ? (
-                filteredUsers.map(u => (
-                  <tr key={u._id} style={{ borderBottom: '1px solid #f0f0f0' }}>
-                    <td style={{ paddingTop: '12px', paddingBottom: '12px', color: '#333', fontWeight: 500 }}>{u.fullName}</td>
-                    <td style={{ paddingTop: '12px', paddingBottom: '12px', color: '#666' }}>{u.email}</td>
-                    <td style={{ paddingTop: '12px', paddingBottom: '12px' }}>
-                      <span className="badge" style={{ backgroundColor: '#E8E8FF', color: '#5856D6' }}>{u.role}</span>
-                    </td>
-                    <td style={{ paddingTop: '12px', paddingBottom: '12px', color: '#999' }}>{u.school || 'N/A'}</td>
-                    <td style={{ paddingTop: '12px', paddingBottom: '12px', textAlign: 'center' }}>
-                      <span className={`badge ${u.interestedInCertification ? 'bg-success' : 'bg-danger'}`}>
+                filteredUsers.map((u) => (
+                  <TableRow key={u._id}>
+                    <TableCell className="font-medium">{u.fullName}</TableCell>
+                    <TableCell className="text-muted-foreground">{u.email}</TableCell>
+                    <TableCell>
+                      <Badge variant="secondary">{u.role}</Badge>
+                    </TableCell>
+                    <TableCell className="text-muted-foreground">{u.school || 'N/A'}</TableCell>
+                    <TableCell className="text-center">
+                      <Badge variant={u.interestedInCertification ? 'success' : 'destructive'}>
                         {u.interestedInCertification ? 'Yes' : 'No'}
-                      </span>
-                    </td>
-                  </tr>
+                      </Badge>
+                    </TableCell>
+                  </TableRow>
                 ))
               ) : (
-                <tr>
-                  <td colSpan="5" className="text-center py-5" style={{ color: '#999' }}>
-                    <i className="bi bi-inbox" style={{ fontSize: '2rem', color: '#ddd' }}></i>
-                    <p className="mt-3">No users found</p>
-                  </td>
-                </tr>
+                <TableRow>
+                  <TableCell colSpan={5} className="h-32 text-center">
+                    <div className="flex flex-col items-center gap-2 text-muted-foreground">
+                      <Inbox className="h-10 w-10" />
+                      <p>No users found</p>
+                    </div>
+                  </TableCell>
+                </TableRow>
               )}
-            </tbody>
-          </table>
-        </div>
-      </div>
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
     </div>
   )
 }

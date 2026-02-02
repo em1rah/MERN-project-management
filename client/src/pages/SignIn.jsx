@@ -1,103 +1,94 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import API from '../api';
+import React, { useState } from 'react'
+import { useNavigate, Link } from 'react-router-dom'
+import API from '../api'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { ModeToggle } from '@/components/mode-toggle'
 
 export default function SignIn() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [loading, setLoading] = useState(false);
-  const navigate = useNavigate();
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [loading, setLoading] = useState(false)
+  const navigate = useNavigate()
 
   async function submit(e) {
-    e.preventDefault();
-    setLoading(true);
+    e.preventDefault()
+    setLoading(true)
     try {
-      const res = await API.post('/auth/signin', { email, password });
-      localStorage.setItem('token', res.data.token);
+      const res = await API.post('/auth/signin', { email, password })
+      localStorage.setItem('token', res.data.token)
 
-      const me = await API.get('/auth/me');
+      const me = await API.get('/auth/me')
       if (me.data.roleType === 'admin') {
-        navigate('/admin');
+        navigate('/admin')
       } else {
-        navigate('/home');
+        navigate('/home')
       }
     } catch (err) {
-      alert(err.response?.data?.msg || 'Sign in failed');
+      alert(err.response?.data?.msg || 'Sign in failed')
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
   }
 
   return (
-    <div className="min-vh-100 d-flex align-items-center bg-light py-5">
-      <div className="container">
-        <div className="row justify-content-center">
-          <div className="col-12 col-sm-10 col-md-8 col-lg-5 col-xl-4">
-            <div className="card shadow-lg border-0 rounded-4 overflow-hidden">
-              <div className="card-body p-4 p-md-5">
-                <h2 className="text-center fw-bold mb-4 text-primary">Welcome Back</h2>
-                <p className="text-center text-muted mb-5">Sign in to continue</p>
-
-                <form onSubmit={submit}>
-                  <div className="mb-4">
-                    <label htmlFor="email" className="form-label fw-semibold">
-                      Email address
-                    </label>
-                    <input
-                      id="email"
-                      required
-                      type="email"
-                      className="form-control form-control-lg rounded-3"
-                      placeholder="name@example.com"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                    />
-                  </div>
-
-                  <div className="mb-4">
-                    <label htmlFor="password" className="form-label fw-semibold">
-                      Password
-                    </label>
-                    <input
-                      id="password"
-                      required
-                      type="password"
-                      className="form-control form-control-lg rounded-3"
-                      placeholder="••••••••"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                    />
-                  </div>
-
-                  <button
-                    type="submit"
-                    className="btn btn-primary btn-lg w-100 rounded-3 fw-semibold"
-                    disabled={loading}
-                  >
-                    {loading ? (
-                      <>
-                        <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-                        Signing in...
-                      </>
-                    ) : (
-                      'Sign In'
-                    )}
-                  </button>
-                </form>
-
-                <div className="text-center mt-4">
-                  <small className="text-muted">
-                    Don't have an account?{' '}
-                    <a href="/signup" className="text-primary fw-semibold text-decoration-none">
-                      Sign up
-                    </a>
-                  </small>
-                </div>
+    <div className="min-h-screen flex items-center justify-center bg-background py-8 px-4">
+      <div className="absolute top-4 right-4">
+        <ModeToggle />
+      </div>
+      <div className="w-full max-w-md">
+        <Card className="border-border shadow-lg">
+          <CardHeader className="space-y-1 text-center">
+            <CardTitle className="text-2xl font-bold">Welcome Back</CardTitle>
+            <CardDescription>Sign in to continue to your account</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={submit} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="email">Email address</Label>
+                <Input
+                  id="email"
+                  required
+                  type="email"
+                  placeholder="name@example.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="h-10"
+                />
               </div>
-            </div>
-          </div>
-        </div>
+              <div className="space-y-2">
+                <Label htmlFor="password">Password</Label>
+                <Input
+                  id="password"
+                  required
+                  type="password"
+                  placeholder="••••••••"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="h-10"
+                />
+              </div>
+              <Button type="submit" className="w-full h-10" disabled={loading}>
+                {loading ? (
+                  <>
+                    <span className="animate-pulse">Signing in...</span>
+                  </>
+                ) : (
+                  'Sign In'
+                )}
+              </Button>
+            </form>
+            <p className="mt-4 text-center text-sm text-muted-foreground">
+              Don&apos;t have an account?{' '}
+              <Link to="/signup" className="font-medium text-primary hover:underline">
+                Sign up
+              </Link>
+            </p>
+          </CardContent>
+        </Card>
       </div>
     </div>
-  );
+  )
 }

@@ -36,4 +36,25 @@ router.get('/users', async (req, res) => {
   }
 });
 
+// List users enrolled in a specific course (by course name)
+router.get('/courses/enrolled', async (req, res) => {
+  try {
+    const course = req.query.course;
+    if (!course) {
+      return res.status(400).json({ error: 'Course name is required' });
+    }
+    const users = await User.find({
+      roleType: 'user',
+      coursesInterested: course,
+    })
+      .select('fullName email')
+      .sort({ fullName: 1 })
+      .lean();
+    res.json(users);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server error');
+  }
+});
+
 module.exports = router;
