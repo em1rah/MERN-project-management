@@ -13,7 +13,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { AuthLayout } from '@/components/auth-layout'
-import { BookOpen } from 'lucide-react'
+import { BookOpen, Check, X } from 'lucide-react'
 
 const roles = [
   'Business Analyst',
@@ -40,6 +40,8 @@ export default function SignUp() {
 
   const [otherCourseInput, setOtherCourseInput] = useState('')
   const [loading, setLoading] = useState(false)
+  const [errors, setErrors] = useState({})
+  const [showPasswordRequirements, setShowPasswordRequirements] = useState(false)
   const navigate = useNavigate()
 
   function toggleCourse(c) {
@@ -51,8 +53,77 @@ export default function SignUp() {
     })
   }
 
+  function setFieldValue(field, value) {
+    setForm((s) => ({ ...s, [field]: value }))
+    validateField(field, value)
+  }
+
+  function validateField(field, value) {
+    const v = (value || '').toString()
+    setErrors((prev) => {
+      const next = { ...prev }
+      if (field === 'fullName') {
+        const name = v.trim()
+        if (!name) next.fullName = 'Full name is required'
+        else if (name.length > 100) next.fullName = 'Full name must be 100 characters or fewer'
+        else if (!/^[A-Za-z\s]+$/.test(name)) next.fullName = 'Full name may only contain letters and spaces'
+        else delete next.fullName
+      }
+      if (field === 'school') {
+        const s = v.trim()
+        if (!s) next.school = 'School / Institution is required'
+        else if (s.length > 100) next.school = 'School / Institution must be 100 characters or fewer'
+        else delete next.school
+      }
+      if (field === 'email') {
+        if (!/^\S+@\S+\.\S+$/.test(v)) next.email = 'Enter a valid email address'
+        else delete next.email
+      }
+      if (field === 'roleOther') {
+        if (form.role === 'Other') {
+          const r = v.trim()
+          if (!r) next.roleOther = 'Please specify your role'
+          else if (r.length > 50) next.roleOther = 'Role description must be 50 characters or fewer'
+          else delete next.roleOther
+        } else {
+          delete next.roleOther
+        }
+      }
+      if (field === 'password') {
+        const pw = v
+        const checks = passwordChecks(pw)
+        if (!Object.values(checks).every(Boolean)) next.password = 'Password does not meet all requirements'
+        else delete next.password
+      }
+      return next
+    })
+  }
+
+  function passwordChecks(pw) {
+    return {
+      minLength: pw.length >= 8,
+      maxLength: pw.length <= 128,
+      hasLower: /[a-z]/.test(pw),
+      hasUpper: /[A-Z]/.test(pw),
+      hasDigit: /\d/.test(pw),
+      hasSymbol: /[^A-Za-z0-9]/.test(pw),
+    }
+  }
+
   async function submit(e) {
     e.preventDefault()
+    // Client-side validation
+    // validate all fields before submit
+    validateField('fullName', form.fullName)
+    validateField('school', form.school)
+    validateField('email', form.email)
+    validateField('password', form.password)
+    validateField('roleOther', form.roleOther)
+    const pwChecks = passwordChecks(form.password || '')
+    const hasPwOK = Object.values(pwChecks).every(Boolean)
+    const hasErrors = Object.keys(errors).length > 0
+    if (hasErrors || !hasPwOK) return
+
     setLoading(true)
 
     if (form.role !== 'Other') {
@@ -81,6 +152,8 @@ export default function SignUp() {
     }
   }
 
+  // legacy validateForm removed; validation is live via setFieldValue/validateField
+
   return (
     <AuthLayout
       headline="Adventure start here"
@@ -108,9 +181,17 @@ export default function SignUp() {
               required
               placeholder="John Doe"
               value={form.fullName}
-              onChange={(e) => setForm({ ...form, fullName: e.target.value })}
+              onChange={(e) => setFieldValue('fullName', e.target.value)}
+              maxLength={100}
               className="h-10"
+              aria-invalid={errors.fullName ? 'true' : 'false'}
             />
+            <div className="flex justify-between text-xs">
+              {errors.fullName && <p className="text-red-600">{errors.fullName}</p>}
+              <p className={form.fullName.length > 80 ? 'text-red-600 font-semibold' : 'text-muted-foreground'}>
+                {form.fullName.length}/100
+              </p>
+            </div>
           </div>
           <div className="space-y-2">
             <Label>School / Institution</Label>
@@ -118,15 +199,31 @@ export default function SignUp() {
               required
               placeholder="Your school or university"
               value={form.school}
-              onChange={(e) => setForm({ ...form, school: e.target.value })}
+              onChange={(e) => setFieldValue('school', e.target.value)}
+              maxLength={100}
               className="h-10"
+              aria-invalid={errors.school ? 'true' : 'false'}
             />
+            <div className="flex justify-between text-xs">
+              {errors.school && <p className="text-red-600">{errors.school}</p>}
+              <p className={form.school.length > 80 ? 'text-red-600 font-semibold' : 'text-muted-foreground'}>
+                {form.school.length}/100
+              </p>
+            </div>
           </div>
         </div>
 
         <div className="space-y-2">
           <Label>Role</Label>
-          <Select value={form.role} onValueChange={(value) => setForm({ ...form, role: value })}>
+          <Select
+            value={form.role}
+            onValueChange={(value) => {
+              setForm((s) => ({ ...s, role: value }))
+              // validate roleOther when role changes
+              if (value !== 'Other') setErrors((p) => { const n = { ...p }; delete n.roleOther; return n })
+              else validateField('roleOther', form.roleOther)
+            }}
+          >
             <SelectTrigger className="h-10">
               <SelectValue placeholder="Select role" />
             </SelectTrigger>
@@ -146,9 +243,17 @@ export default function SignUp() {
             <Input
               placeholder="Please specify your role"
               value={form.roleOther}
-              onChange={(e) => setForm({ ...form, roleOther: e.target.value })}
+              onChange={(e) => setFieldValue('roleOther', e.target.value)}
+              maxLength={50}
               className="h-10"
+              aria-invalid={errors.roleOther ? 'true' : 'false'}
             />
+            <div className="flex justify-between text-xs">
+              {errors.roleOther && <p className="text-red-600">{errors.roleOther}</p>}
+              <p className={form.roleOther.length > 40 ? 'text-red-600 font-semibold' : 'text-muted-foreground'}>
+                {form.roleOther.length}/50
+              </p>
+            </div>
           </div>
         )}
 
@@ -179,6 +284,7 @@ export default function SignUp() {
               placeholder="e.g. Azure Fundamentals"
               value={otherCourseInput}
               onChange={(e) => setOtherCourseInput(e.target.value)}
+              maxLength={100}
               className="h-10 flex-1"
             />
             <Button
@@ -186,13 +292,21 @@ export default function SignUp() {
               variant="outline"
               className="h-10"
               onClick={() => {
-                if (otherCourseInput.trim()) {
-                  setForm((s) => ({
-                    ...s,
-                    coursesOther: [...s.coursesOther, otherCourseInput.trim()],
-                  }))
-                  setOtherCourseInput('')
+                const v = otherCourseInput.trim()
+                if (!v) return
+                if (v.length > 100) {
+                  alert('Other course name must be 100 characters or fewer')
+                  return
                 }
+                setForm((s) => {
+                  if (!Array.isArray(s.coursesOther)) s.coursesOther = []
+                  if (s.coursesOther.length >= 10) {
+                    alert('You can add up to 10 other courses')
+                    return s
+                  }
+                  return { ...s, coursesOther: [...s.coursesOther, v] }
+                })
+                setOtherCourseInput('')
               }}
             >
               Add
@@ -243,9 +357,12 @@ export default function SignUp() {
               type="email"
               placeholder="name@example.com"
               value={form.email}
-              onChange={(e) => setForm({ ...form, email: e.target.value })}
+              onChange={(e) => setFieldValue('email', e.target.value)}
+              maxLength={254}
               className="h-10"
+              aria-invalid={errors.email ? 'true' : 'false'}
             />
+            {errors.email && <p className="mt-1 text-sm text-red-600">{errors.email}</p>}
           </div>
           <div className="space-y-2">
             <Label>Password</Label>
@@ -254,9 +371,42 @@ export default function SignUp() {
               type="password"
               placeholder="••••••••"
               value={form.password}
-              onChange={(e) => setForm({ ...form, password: e.target.value })}
+              onChange={(e) => setFieldValue('password', e.target.value)}
+              maxLength={128}
               className="h-10"
+              aria-invalid={errors.password ? 'true' : 'false'}
             />
+            {errors.password && <p className="mt-1 text-sm text-red-600">{errors.password}</p>}
+            <button
+              type="button"
+              onClick={() => setShowPasswordRequirements(!showPasswordRequirements)}
+              className="text-sm text-primary hover:underline"
+            >
+              {showPasswordRequirements ? 'Hide password requirements' : 'Show password requirements'}
+            </button>
+
+            {showPasswordRequirements && (
+              <div className="mt-2 grid gap-1 text-sm">
+                {Object.entries({
+                  'At least 8 characters': 'minLength',
+                  'No more than 128 characters': 'maxLength',
+                  'One lowercase letter': 'hasLower',
+                  'One uppercase letter': 'hasUpper',
+                  'One number': 'hasDigit',
+                  'One symbol (e.g. !@#$)': 'hasSymbol',
+                }).map(([label, key]) => {
+                  const ok = passwordChecks(form.password || '')[key]
+                  return (
+                    <div key={key} className="flex items-center gap-2">
+                      <span className={ok ? 'text-green-600' : 'text-red-600'}>
+                        {ok ? <Check className="h-4 w-4" /> : <X className="h-4 w-4" />}
+                      </span>
+                      <span className={ok ? 'text-green-700' : 'text-red-700'}>{label}</span>
+                    </div>
+                  )
+                })}
+              </div>
+            )}
           </div>
         </div>
 

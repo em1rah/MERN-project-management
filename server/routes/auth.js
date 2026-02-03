@@ -11,13 +11,46 @@ router.post('/signup', async (req, res) => {
   try {
     const { fullName, school, role, roleOther, coursesInterested, coursesOther, interestedInCertification, email, password } = req.body;
 
-    const existingByEmail = await User.findOne({ email });
+    // Basic server-side validations
+    const name = (fullName || '').trim();
+    if (!name) return res.status(400).json({ msg: 'Full name is required.' });
+    if (name.length > 100) return res.status(400).json({ msg: 'Full name must be 100 characters or fewer.' });
+    if (!/^[A-Za-z\s]+$/.test(name)) return res.status(400).json({ msg: 'Full name may only contain letters and spaces.' });
+
+    const schoolName = (school || '').trim();
+    if (!schoolName) return res.status(400).json({ msg: 'School / Institution is required.' });
+    if (schoolName.length > 100) return res.status(400).json({ msg: 'School / Institution must be 100 characters or fewer.' });
+
+    const emailNorm = (email || '').trim().toLowerCase();
+    if (!emailNorm || !/^\S+@\S+\.\S+$/.test(emailNorm)) return res.status(400).json({ msg: 'A valid email address is required.' });
+
+    if (!password) return res.status(400).json({ msg: 'Password is required.' });
+    if (typeof password !== 'string' || password.length < 8 || password.length > 128) return res.status(400).json({ msg: 'Password must be between 8 and 128 characters.' });
+    // Require password complexity: lower, upper, digit, special
+    if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9])/.test(password)) {
+      return res.status(400).json({ msg: 'Password must include upper and lower case letters, a number, and a symbol.' });
+    }
+
+    if (role === 'Other') {
+      const ro = (roleOther || '').trim();
+      if (!ro) return res.status(400).json({ msg: 'Please specify your role.' });
+      if (ro.length > 50) return res.status(400).json({ msg: 'Role description must be 50 characters or fewer.' });
+    }
+
+    if (coursesInterested && (!Array.isArray(coursesInterested) || coursesInterested.length > 10)) {
+      return res.status(400).json({ msg: 'Invalid coursesInterested value.' });
+    }
+    if (coursesOther && (!Array.isArray(coursesOther) || coursesOther.length > 10)) {
+      return res.status(400).json({ msg: 'Invalid coursesOther value.' });
+    }
+
+    const existingByEmail = await User.findOne({ email: emailNorm });
     if (existingByEmail) return res.status(400).json({ msg: 'This email is already registered.' });
 
-    const existingByFullName = await User.findOne({ fullName: (fullName || '').trim() });
+    const existingByFullName = await User.findOne({ fullName: name });
     if (existingByFullName) return res.status(400).json({ msg: 'This full name is already registered.' });
 
-    const user = new User({ fullName: (fullName || '').trim(), school, role, roleOther, coursesInterested, coursesOther, interestedInCertification, email, password });
+    const user = new User({ fullName: name, school: schoolName, role, roleOther, coursesInterested, coursesOther, interestedInCertification, email: emailNorm, password });
     const salt = await bcrypt.genSalt(10);
     user.password = await bcrypt.hash(password, salt);
     await user.save();
