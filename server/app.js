@@ -1,3 +1,7 @@
+const path = require('path');
+// Load env when app is required from Vercel serverless (e.g. api/[...path].js); no-op if no .env
+require('dotenv').config({ path: path.join(__dirname, '.env') });
+
 const cors = require('cors');
 const express = require('express');
 const connectDB = require('./config/db');
