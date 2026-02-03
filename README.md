@@ -52,4 +52,10 @@ Full-stack app: React (Vite) frontend + Express API + MongoDB. Sign up / sign in
 
 5. **Check API:** open `https://your-app.vercel.app/api/health`. You should see `{"ok":true,"mongo":"connected",...}` when DB and env are correct.
 
+## Deploy to Render
+
+For step-by-step deployment on Render using **Import from GitHub**, see **[DEPLOY_RENDER.md](./DEPLOY_RENDER.md)**. Summary: create a **Web Service**, set **Build Command** to `npm install && npm run build`, **Start Command** to `npm start`, add env vars (`MONGO_URI`, `JWT_SECRET`, `ADMIN_EMAIL`, `ADMIN_PASSWORD`), then run `node server/seedAdmin.js` once with the same values to create the admin user.
+
+---
+
 Sign-in and sign-up use the same API and MongoDB; data is stored in the database you configure with `MONGO_URI`.

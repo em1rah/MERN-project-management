@@ -28,5 +28,13 @@ app.get('/api/health', async (req, res) => {
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/admin', require('./routes/admin'));
 
+// Serve built frontend (e.g. on Render: build runs first, then server serves dist)
+const fs = require('fs');
+const distPath = path.join(__dirname, '../dist');
+if (fs.existsSync(distPath)) {
+  app.use(express.static(distPath));
+  app.get('*', (req, res) => res.sendFile(path.join(distPath, 'index.html')));
+}
+
 module.exports = app;
 
