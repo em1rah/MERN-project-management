@@ -8,9 +8,14 @@ const User = require('../models/User');
 router.post('/signup', async (req, res) => {
   try {
     const { fullName, school, role, roleOther, coursesInterested, coursesOther, interestedInCertification, email, password } = req.body;
-    let user = await User.findOne({ email });
-    if (user) return res.status(400).json({ msg: 'User already exists' });
-    user = new User({ fullName, school, role, roleOther, coursesInterested, coursesOther, interestedInCertification, email, password });
+
+    const existingByEmail = await User.findOne({ email });
+    if (existingByEmail) return res.status(400).json({ msg: 'This email is already registered.' });
+
+    const existingByFullName = await User.findOne({ fullName: (fullName || '').trim() });
+    if (existingByFullName) return res.status(400).json({ msg: 'This full name is already registered.' });
+
+    const user = new User({ fullName: (fullName || '').trim(), school, role, roleOther, coursesInterested, coursesOther, interestedInCertification, email, password });
     const salt = await bcrypt.genSalt(10);
     user.password = await bcrypt.hash(password, salt);
     await user.save();
@@ -18,6 +23,10 @@ router.post('/signup', async (req, res) => {
     const token = jwt.sign(payload, process.env.JWT_SECRET || 'secret', { expiresIn: '7d' });
     res.json({ token });
   } catch (err) {
+    if (err.code === 11000) {
+      const field = err.message.includes('fullName') ? 'full name' : 'email';
+      return res.status(400).json({ msg: `This ${field} is already registered.` });
+    }
     console.error(err.message);
     res.status(500).send('Server error');
   }
