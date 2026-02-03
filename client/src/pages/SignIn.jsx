@@ -4,12 +4,14 @@ import API from '../api'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { ModeToggle } from '@/components/mode-toggle'
+import { AuthLayout } from '@/components/auth-layout'
+import { Mail, Lock, BookOpen } from 'lucide-react'
+import { cn } from '@/lib/utils'
 
 export default function SignIn() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [rememberMe, setRememberMe] = useState(false)
   const [loading, setLoading] = useState(false)
   const navigate = useNavigate()
 
@@ -19,6 +21,11 @@ export default function SignIn() {
     try {
       const res = await API.post('/auth/signin', { email, password })
       localStorage.setItem('token', res.data.token)
+      if (rememberMe) {
+        localStorage.setItem('rememberMe', 'true')
+      } else {
+        localStorage.removeItem('rememberMe')
+      }
 
       const me = await API.get('/auth/me')
       if (me.data.roleType === 'admin') {
@@ -34,56 +41,83 @@ export default function SignIn() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4 py-10">
-      <div className="absolute right-4 top-4">
-        <ModeToggle />
+    <AuthLayout
+      headline="Adventure start here"
+      subline="Sign in to access your trainee or admin dashboard."
+    >
+      <div className="flex flex-col items-center text-center">
+        {/* Logo */}
+        <div
+          className="mb-6 flex h-14 w-14 items-center justify-center rounded-xl text-primary"
+          style={{ backgroundColor: 'var(--primary)', color: 'var(--primary-foreground)' }}
+        >
+          <BookOpen className="h-7 w-7" />
+        </div>
+        <h2 className="text-2xl font-bold tracking-tight text-foreground">Hello! Welcome back</h2>
+        <p className="mt-1 text-sm text-muted-foreground">Sign in with your email and password.</p>
       </div>
-      <div className="w-full max-w-md">
-        <Card className="border-border shadow-lg">
-          <CardHeader className="space-y-1 text-center">
-            <CardTitle className="text-2xl font-bold">Welcome back</CardTitle>
-            <CardDescription>Sign in to access your trainee or admin dashboard.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={submit} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="email">Email address</Label>
-                <Input
-                  id="email"
-                  required
-                  type="email"
-                  placeholder="name@example.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="h-10"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
-                <Input
-                  id="password"
-                  required
-                  type="password"
-                  placeholder="••••••••"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="h-10"
-                />
-              </div>
-              <Button type="submit" className="h-10 w-full" disabled={loading}>
-                {loading ? <span className="animate-pulse">Signing in...</span> : 'Sign In'}
-              </Button>
-            </form>
 
-            <p className="mt-4 text-center text-sm text-muted-foreground">
-              New here?{' '}
-              <Link to="/signup" className="font-medium text-primary hover:underline">
-                Create a trainee account
-              </Link>
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-    </div>
+      <form onSubmit={submit} className="mt-8 space-y-4">
+        <div className="space-y-2">
+          <Label htmlFor="email">Email</Label>
+          <div className="relative">
+            <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-primary" />
+            <Input
+              id="email"
+              required
+              type="email"
+              placeholder="Enter your email address"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="h-10 pl-9"
+            />
+          </div>
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="password">Password</Label>
+          <div className="relative">
+            <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-primary" />
+            <Input
+              id="password"
+              required
+              type="password"
+              placeholder="••••••••"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="h-10 pl-9"
+            />
+          </div>
+        </div>
+        <div className="flex items-center justify-between">
+          <label className="flex cursor-pointer items-center gap-2">
+            <input
+              type="checkbox"
+              checked={rememberMe}
+              onChange={(e) => setRememberMe(e.target.checked)}
+              className={cn(
+                'h-4 w-4 rounded border-input accent-primary'
+              )}
+            />
+            <span className="text-sm text-muted-foreground">Remember me</span>
+          </label>
+          <Link
+            to="/forgot-password"
+            className="text-sm font-medium text-primary hover:underline"
+          >
+            Reset Password!
+          </Link>
+        </div>
+        <Button type="submit" className="h-10 w-full" disabled={loading}>
+          {loading ? <span className="animate-pulse">Signing in...</span> : 'Login'}
+        </Button>
+      </form>
+
+      <p className="mt-6 text-center text-sm text-muted-foreground">
+        Don&apos;t have an account?{' '}
+        <Link to="/signup" className="font-medium text-primary hover:underline">
+          Create Account
+        </Link>
+      </p>
+    </AuthLayout>
   )
 }

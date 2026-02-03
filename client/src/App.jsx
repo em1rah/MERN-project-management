@@ -3,6 +3,7 @@ import { Routes, Route, useLocation } from 'react-router-dom'
 import { ThemeProvider } from '@/components/theme-provider'
 import SignUp from './pages/SignUp'
 import SignIn from './pages/SignIn'
+import ForgotPassword from './pages/ForgotPassword'
 import Home from './pages/Home'
 import AdminDashboard from './pages/AdminDashboard'
 import Landing from './pages/Landing'
@@ -18,6 +19,7 @@ export default function App() {
             <Route path="/" element={<Landing />} />
             <Route path="/signup" element={<SignUp />} />
             <Route path="/signin" element={<SignIn />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/home" element={<Home />} />
             <Route path="/admin" element={<AdminDashboard />} />
           </Routes>

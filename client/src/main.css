@@ -45,6 +45,9 @@
   --sidebar-accent-foreground: oklch(0.205 0 0);
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
+  /* Auth left panel (signin/signup) – theme-aware */
+  --auth-panel-bg: oklch(0.488 0.243 264.376);
+  --auth-panel-foreground: oklch(0.985 0 0);
 }
 
 .dark {
@@ -87,12 +90,16 @@
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(0.269 0 0);
   --sidebar-ring: oklch(0.439 0 0);
+  --auth-panel-bg: oklch(0.35 0.2 264.376);
+  --auth-panel-foreground: oklch(0.985 0 0);
 }
 
 /* Theme: Blue */
 .theme-blue {
   --primary: oklch(0.488 0.243 264.376);
   --primary-foreground: oklch(0.985 0 0);
+  --auth-panel-bg: oklch(0.488 0.243 264.376);
+  --auth-panel-foreground: oklch(0.985 0 0);
   --chart-1: oklch(0.488 0.243 264.376);
   --chart-pie-interested: #7dd3fc;
   --chart-pie-not-interested: #fda4af;
@@ -106,6 +113,8 @@
 .dark.theme-blue {
   --primary: oklch(0.627 0.265 264.376);
   --primary-foreground: oklch(0.985 0 0);
+  --auth-panel-bg: oklch(0.35 0.2 264.376);
+  --auth-panel-foreground: oklch(0.985 0 0);
   --chart-1: oklch(0.627 0.265 264.376);
   --chart-pie-interested: #4ade80;
   --chart-pie-not-interested: #f87171;
@@ -121,6 +130,8 @@
 .theme-rose {
   --primary: oklch(0.577 0.245 27.325);
   --primary-foreground: oklch(0.985 0 0);
+  --auth-panel-bg: oklch(0.577 0.245 27.325);
+  --auth-panel-foreground: oklch(0.985 0 0);
   --chart-1: oklch(0.577 0.245 27.325);
   --chart-pie-interested: #86efac;
   --chart-pie-not-interested: #fda4af;
@@ -134,6 +145,8 @@
 .dark.theme-rose {
   --primary: oklch(0.637 0.237 25.331);
   --primary-foreground: oklch(0.985 0 0);
+  --auth-panel-bg: oklch(0.45 0.2 27.325);
+  --auth-panel-foreground: oklch(0.985 0 0);
   --chart-1: oklch(0.637 0.237 25.331);
   --chart-pie-interested: #4ade80;
   --chart-pie-not-interested: #f87171;
@@ -149,6 +162,8 @@
 .theme-green {
   --primary: oklch(0.457 0.163 164.364);
   --primary-foreground: oklch(0.985 0 0);
+  --auth-panel-bg: oklch(0.457 0.163 164.364);
+  --auth-panel-foreground: oklch(0.985 0 0);
   --chart-1: oklch(0.457 0.163 164.364);
   --chart-pie-interested: #86efac;
   --chart-pie-not-interested: #fca5a5;
@@ -162,6 +177,8 @@
 .dark.theme-green {
   --primary: oklch(0.596 0.171 162.48);
   --primary-foreground: oklch(0.985 0 0);
+  --auth-panel-bg: oklch(0.35 0.15 164.364);
+  --auth-panel-foreground: oklch(0.985 0 0);
   --chart-1: oklch(0.596 0.171 162.48);
   --chart-pie-interested: #4ade80;
   --chart-pie-not-interested: #f87171;
@@ -177,6 +194,8 @@
 .theme-violet {
   --primary: oklch(0.496 0.265 292.717);
   --primary-foreground: oklch(0.985 0 0);
+  --auth-panel-bg: oklch(0.496 0.265 292.717);
+  --auth-panel-foreground: oklch(0.985 0 0);
   --chart-1: oklch(0.496 0.265 292.717);
   --chart-pie-interested: #a5b4fc;
   --chart-pie-not-interested: #fda4af;
@@ -190,6 +209,8 @@
 .dark.theme-violet {
   --primary: oklch(0.645 0.246 292.717);
   --primary-foreground: oklch(0.985 0 0);
+  --auth-panel-bg: oklch(0.38 0.22 292.717);
+  --auth-panel-foreground: oklch(0.985 0 0);
   --chart-1: oklch(0.645 0.246 292.717);
   --chart-pie-interested: #86efac;
   --chart-pie-not-interested: #f87171;
@@ -205,6 +226,8 @@
 .theme-amber {
   --primary: oklch(0.769 0.188 70.08);
   --primary-foreground: oklch(0.145 0 0);
+  --auth-panel-bg: oklch(0.65 0.18 70.08);
+  --auth-panel-foreground: oklch(0.2 0.02 70.08);
   --chart-1: oklch(0.769 0.188 70.08);
   --chart-pie-interested: #86efac;
   --chart-pie-not-interested: #fca5a5;
@@ -218,6 +241,8 @@
 .dark.theme-amber {
   --primary: oklch(0.828 0.189 84.429);
   --primary-foreground: oklch(0.145 0 0);
+  --auth-panel-bg: oklch(0.55 0.16 70.08);
+  --auth-panel-foreground: oklch(0.985 0 0);
   --chart-1: oklch(0.828 0.189 84.429);
   --chart-pie-interested: #4ade80;
   --chart-pie-not-interested: #f87171;
