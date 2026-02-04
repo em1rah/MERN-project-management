@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge'
 import { ModeToggle, ThemePickerCompact } from '@/components/mode-toggle'
 import { Sparkles, QrCode, Users, LineChart } from 'lucide-react'
 
-const SIGNUP_QR_URL = 'https://mern-project-management-w5fj.onrender.com/signup'
+const SIGNUP_QR_URL = 'https://mern-project-management-i03e.onrender.com/signup'
 
 export default function Landing() {
   return (
