@@ -150,6 +150,122 @@ router.get('/users', async (req, res) => {
   }
 });
 
+// Update user (admin only)
+router.patch('/users/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const {
+      fullName,
+      email,
+      school,
+      coursesInterested,
+      coursesOther,
+      interestedInCertification,
+      trainingAttended,
+      mobileNumber,
+      gradeTeach,
+      yearsExperience,
+    } = req.body;
+
+    const updates = {};
+
+    if (fullName !== undefined) {
+      const name = String(fullName).trim();
+      if (!name) return res.status(400).json({ msg: 'Full name is required.' });
+      if (name.length > 100) return res.status(400).json({ msg: 'Full name must be 100 characters or fewer.' });
+      updates.fullName = name;
+    }
+
+    if (email !== undefined) {
+      const emailNorm = String(email).trim().toLowerCase();
+      if (!/^\S+@\S+\.\S+$/.test(emailNorm)) {
+        return res.status(400).json({ msg: 'A valid email address is required.' });
+      }
+      const exists = await User.findOne({ email: emailNorm, _id: { $ne: id } }).select('_id').lean();
+      if (exists) return res.status(400).json({ msg: 'This email is already registered.' });
+      updates.email = emailNorm;
+    }
+
+    if (school !== undefined) {
+      const schoolName = String(school).trim();
+      if (!schoolName) return res.status(400).json({ msg: 'School / Institution is required.' });
+      if (schoolName.length > 100) return res.status(400).json({ msg: 'School / Institution must be 100 characters or fewer.' });
+      updates.school = schoolName;
+    }
+
+    if (coursesInterested !== undefined) {
+      updates.coursesInterested = Array.isArray(coursesInterested)
+        ? coursesInterested
+        : splitList(coursesInterested);
+    }
+
+    if (coursesOther !== undefined) {
+      updates.coursesOther = Array.isArray(coursesOther)
+        ? coursesOther
+        : splitList(coursesOther);
+    }
+
+    if (interestedInCertification !== undefined) {
+      const parsed = parseBoolean(interestedInCertification);
+      if (parsed === null) {
+        return res.status(400).json({ msg: 'interestedInCertification must be true/false (or yes/no, 1/0)' });
+      }
+      updates.interestedInCertification = parsed;
+    }
+
+    if (trainingAttended !== undefined) {
+      const parsed = parseBoolean(trainingAttended);
+      if (parsed === null) {
+        return res.status(400).json({ msg: 'trainingAttended must be true/false (or yes/no, 1/0)' });
+      }
+      updates.trainingAttended = parsed;
+    }
+
+    if (mobileNumber !== undefined) {
+      const mobile = String(mobileNumber ?? '').trim();
+      if (mobile.length > 30) return res.status(400).json({ msg: 'Mobile number must be 30 characters or fewer.' });
+      updates.mobileNumber = mobile;
+    }
+
+    if (gradeTeach !== undefined) {
+      updates.gradeTeach = String(gradeTeach ?? '').trim();
+    }
+
+    if (yearsExperience !== undefined) {
+      const v = String(yearsExperience ?? '').trim();
+      if (v === '') {
+        updates.yearsExperience = undefined;
+      } else if (!/^\d+(\.\d+)?$/.test(v)) {
+        return res.status(400).json({ msg: 'yearsExperience must be a number.' });
+      } else {
+        const num = Number(v);
+        if (num < 0 || num > 80) return res.status(400).json({ msg: 'yearsExperience must be between 0 and 80.' });
+        updates.yearsExperience = num;
+      }
+    }
+
+    const user = await User.findByIdAndUpdate(id, { $set: updates }, { new: true }).select('-password');
+    if (!user) return res.status(404).json({ msg: 'User not found' });
+    res.json(user);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server error');
+  }
+});
+
+// Delete user (admin only)
+router.delete('/users/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const user = await User.findByIdAndDelete(id).select('-password');
+    if (!user) return res.status(404).json({ msg: 'User not found' });
+    res.json({ msg: 'User deleted', user });
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server error');
+  }
+});
+
 // Import/Upsert trainees from CSV (admin only)
 // CSV required columns: fullName, school, interestedInCertification, email
 // Optional columns: coursesInterested, coursesOther, password, createdAt, trainingAttended, mobileNumber, gradeTeach, yearsExperience

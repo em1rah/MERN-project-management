@@ -4,6 +4,7 @@ import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
+import { Label } from '@/components/ui/label'
 import {
   Table,
   TableBody,
@@ -12,7 +13,25 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import { Search, Inbox, Upload, AlertTriangle, ChevronLeft, ChevronRight } from 'lucide-react'
+import { Search, Inbox, Upload, AlertTriangle, ChevronLeft, ChevronRight, Eye, Pencil, Trash2 } from 'lucide-react'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
 
 const PAGE_SIZES = [5, 10, 20, 50]
 
@@ -26,11 +45,76 @@ export default function UserManagement({ onImported }) {
   const [importing, setImporting] = useState(false)
   const [importResult, setImportResult] = useState(null)
   const [importError, setImportError] = useState('')
+  const [viewUser, setViewUser] = useState(null)
+  const [editUser, setEditUser] = useState(null)
+  const [editForm, setEditForm] = useState(null)
+  const [editError, setEditError] = useState('')
+  const [deleteUser, setDeleteUser] = useState(null)
+
+  const parseListInput = (value) =>
+    String(value || '')
+      .split(/[;|,]/g)
+      .map((s) => s.trim())
+      .filter(Boolean)
 
   const fetchUsers = () =>
     API.get('/admin/users')
       .then((r) => setUsers(r.data))
       .catch((e) => console.error(e))
+
+  const openEdit = (u) => {
+    setEditError('')
+    setEditUser(u)
+    setEditForm({
+      fullName: u.fullName || '',
+      email: u.email || '',
+      school: u.school || '',
+      mobileNumber: u.mobileNumber || '',
+      gradeTeach: u.gradeTeach || '',
+      yearsExperience: Number.isFinite(u.yearsExperience) ? String(u.yearsExperience) : '',
+      coursesInterested: Array.isArray(u.coursesInterested) ? u.coursesInterested.join(', ') : '',
+      coursesOther: Array.isArray(u.coursesOther) ? u.coursesOther.join(', ') : '',
+      interestedInCertification: u.interestedInCertification === true,
+      trainingAttended: u.trainingAttended === true,
+    })
+  }
+
+  const saveEdit = async () => {
+    if (!editUser || !editForm) return
+    setEditError('')
+    try {
+      const payload = {
+        fullName: editForm.fullName,
+        email: editForm.email,
+        school: editForm.school,
+        mobileNumber: editForm.mobileNumber,
+        gradeTeach: editForm.gradeTeach,
+        yearsExperience: editForm.yearsExperience,
+        coursesInterested: parseListInput(editForm.coursesInterested),
+        coursesOther: parseListInput(editForm.coursesOther),
+        interestedInCertification: editForm.interestedInCertification,
+        trainingAttended: editForm.trainingAttended,
+      }
+      await API.patch(`/admin/users/${editUser._id}`, payload)
+      await fetchUsers()
+      setEditUser(null)
+      setEditForm(null)
+    } catch (e) {
+      setEditError(e.response?.data?.msg || 'Failed to update user')
+    }
+  }
+
+  const confirmDelete = async () => {
+    if (!deleteUser) return
+    try {
+      await API.delete(`/admin/users/${deleteUser._id}`)
+      await fetchUsers()
+      setDeleteUser(null)
+    } catch (e) {
+      console.error(e)
+      setDeleteUser(null)
+    }
+  }
 
   useEffect(() => {
     setLoading(true)
@@ -185,6 +269,7 @@ export default function UserManagement({ onImported }) {
                   <TableHead className="px-5 py-4 text-sm font-medium">Grade Teach</TableHead>
                   <TableHead className="px-5 py-4 text-sm font-medium">Years Exp</TableHead>
                   <TableHead className="px-5 py-4 text-center text-sm font-medium">Certification Interest</TableHead>
+                  <TableHead className="px-5 py-4 text-center text-sm font-medium">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -214,11 +299,48 @@ export default function UserManagement({ onImported }) {
                           </Badge>
                         )}
                       </TableCell>
+                      <TableCell className="px-5 py-4">
+                        <div className="flex items-center justify-center gap-2">
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            className="h-9 w-9"
+                            aria-label={`View ${u.fullName}`}
+                            title="View"
+                            onClick={() => setViewUser(u)}
+                          >
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            className="h-9 w-9"
+                            aria-label={`Edit ${u.fullName}`}
+                            title="Edit"
+                            onClick={() => openEdit(u)}
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            className="h-9 w-9 text-rose-600 hover:text-rose-700"
+                            aria-label={`Delete ${u.fullName}`}
+                            title="Delete"
+                            onClick={() => setDeleteUser(u)}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
                     </TableRow>
                   ))
                 ) : (
                   <TableRow>
-                    <TableCell colSpan={8} className="h-40 px-5 py-8 text-center">
+                    <TableCell colSpan={9} className="h-40 px-5 py-8 text-center">
                       <div className="flex flex-col items-center gap-3 text-muted-foreground">
                         <Inbox className="h-10 w-10" />
                         <p>No users found</p>
@@ -278,6 +400,188 @@ export default function UserManagement({ onImported }) {
           )}
         </CardContent>
       </Card>
+
+      <Dialog open={!!viewUser} onOpenChange={(open) => !open && setViewUser(null)}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>User details</DialogTitle>
+            <DialogDescription>Read-only profile information.</DialogDescription>
+          </DialogHeader>
+          {viewUser && (
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div>
+                <p className="text-xs text-muted-foreground">Full name</p>
+                <p className="font-medium">{viewUser.fullName}</p>
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">Email</p>
+                <p className="font-medium">{viewUser.email}</p>
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">School</p>
+                <p className="font-medium">{viewUser.school || 'N/A'}</p>
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">Mobile</p>
+                <p className="font-medium">{viewUser.mobileNumber || 'N/A'}</p>
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">Grade teach</p>
+                <p className="font-medium">{viewUser.gradeTeach || 'N/A'}</p>
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">Years experience</p>
+                <p className="font-medium">
+                  {Number.isFinite(viewUser.yearsExperience) ? viewUser.yearsExperience : 'N/A'}
+                </p>
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">Training attended</p>
+                <p className="font-medium">
+                  {viewUser.trainingAttended === true ? 'Yes' : viewUser.trainingAttended === false ? 'No' : 'N/A'}
+                </p>
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">Certification interest</p>
+                <p className="font-medium">
+                  {viewUser.interestedInCertification ? 'Yes' : 'No'}
+                </p>
+              </div>
+              <div className="sm:col-span-2">
+                <p className="text-xs text-muted-foreground">Courses interested</p>
+                <p className="font-medium">
+                  {Array.isArray(viewUser.coursesInterested) && viewUser.coursesInterested.length
+                    ? viewUser.coursesInterested.join(', ')
+                    : 'N/A'}
+                </p>
+              </div>
+              <div className="sm:col-span-2">
+                <p className="text-xs text-muted-foreground">Other courses</p>
+                <p className="font-medium">
+                  {Array.isArray(viewUser.coursesOther) && viewUser.coursesOther.length
+                    ? viewUser.coursesOther.join(', ')
+                    : 'N/A'}
+                </p>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!editUser} onOpenChange={(open) => !open && setEditUser(null)}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Edit user</DialogTitle>
+            <DialogDescription>Update trainee profile details.</DialogDescription>
+          </DialogHeader>
+          {editForm && (
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-2">
+                <Label>Full name</Label>
+                <Input
+                  value={editForm.fullName}
+                  onChange={(e) => setEditForm((s) => ({ ...s, fullName: e.target.value }))}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Email</Label>
+                <Input
+                  value={editForm.email}
+                  onChange={(e) => setEditForm((s) => ({ ...s, email: e.target.value }))}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>School</Label>
+                <Input
+                  value={editForm.school}
+                  onChange={(e) => setEditForm((s) => ({ ...s, school: e.target.value }))}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Mobile number</Label>
+                <Input
+                  value={editForm.mobileNumber}
+                  onChange={(e) => setEditForm((s) => ({ ...s, mobileNumber: e.target.value }))}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Grade teach</Label>
+                <Input
+                  value={editForm.gradeTeach}
+                  onChange={(e) => setEditForm((s) => ({ ...s, gradeTeach: e.target.value }))}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Years experience</Label>
+                <Input
+                  value={editForm.yearsExperience}
+                  onChange={(e) => setEditForm((s) => ({ ...s, yearsExperience: e.target.value }))}
+                />
+              </div>
+              <div className="space-y-2 sm:col-span-2">
+                <Label>Courses interested (comma separated)</Label>
+                <Input
+                  value={editForm.coursesInterested}
+                  onChange={(e) => setEditForm((s) => ({ ...s, coursesInterested: e.target.value }))}
+                />
+              </div>
+              <div className="space-y-2 sm:col-span-2">
+                <Label>Other courses (comma separated)</Label>
+                <Input
+                  value={editForm.coursesOther}
+                  onChange={(e) => setEditForm((s) => ({ ...s, coursesOther: e.target.value }))}
+                />
+              </div>
+              <div className="flex items-center gap-3">
+                <input
+                  type="checkbox"
+                  checked={editForm.interestedInCertification}
+                  onChange={(e) => setEditForm((s) => ({ ...s, interestedInCertification: e.target.checked }))}
+                  className="h-4 w-4 rounded border-input"
+                  id="cert"
+                />
+                <Label htmlFor="cert">Interested in certification</Label>
+              </div>
+              <div className="flex items-center gap-3">
+                <input
+                  type="checkbox"
+                  checked={editForm.trainingAttended}
+                  onChange={(e) => setEditForm((s) => ({ ...s, trainingAttended: e.target.checked }))}
+                  className="h-4 w-4 rounded border-input"
+                  id="training"
+                />
+                <Label htmlFor="training">Training attended</Label>
+              </div>
+            </div>
+          )}
+          {editError && <p className="text-sm text-rose-600">{editError}</p>}
+          <DialogFooter>
+            <Button type="button" variant="outline" onClick={() => setEditUser(null)}>
+              Cancel
+            </Button>
+            <Button type="button" onClick={saveEdit}>
+              Save changes
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <AlertDialog open={!!deleteUser} onOpenChange={(open) => !open && setDeleteUser(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete user?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete the user.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete} className="bg-rose-600 hover:bg-rose-700">
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }
