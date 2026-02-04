@@ -131,11 +131,20 @@ export default function SignUp() {
     const hasErrors = Object.keys(errors).length > 0
     if (hasErrors || !hasPwOK) return
 
+    const normalizeText = (v) => String(v || '').trim().replace(/\s+/g, ' ')
+    const extraOther = normalizeText(otherCourseInput)
+    const coursesOtherPayload = [
+      ...(Array.isArray(form.coursesOther) ? form.coursesOther : []),
+      ...(extraOther ? [extraOther] : []),
+    ].filter(Boolean)
+    const uniqueCoursesOther = Array.from(new Set(coursesOtherPayload))
+
     setLoading(true)
 
     try {
       const payload = {
         ...form,
+        coursesOther: uniqueCoursesOther,
         gradeTeach: Array.isArray(form.gradeTeach) ? form.gradeTeach.join(', ') : '',
         yearsExperience: form.yearsExperience === '' ? undefined : Number(form.yearsExperience),
       }
@@ -264,6 +273,9 @@ export default function SignUp() {
                 setForm((s) => {
                   const normalized = v.replace(/\s+/g, ' ')
                   if (!Array.isArray(s.coursesOther)) s.coursesOther = []
+                  if (s.coursesOther.some((c) => c.toLowerCase() === normalized.toLowerCase())) {
+                    return s
+                  }
                   if (s.coursesOther.length >= 10) {
                     alert('You can add up to 10 other courses')
                     return s
