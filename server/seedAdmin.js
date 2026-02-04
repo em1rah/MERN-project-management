@@ -14,7 +14,7 @@ async function seed() {
     process.exit(0);
   }
   const hashed = await bcrypt.hash(adminPassword, 10);
-  admin = new User({ fullName: 'Admin', school: 'N/A', role: 'Admin', email: adminEmail, password: hashed, roleType: 'admin', interestedInCertification: false });
+  admin = new User({ fullName: 'Admin', school: 'N/A', email: adminEmail, password: hashed, roleType: 'admin', interestedInCertification: false });
   await admin.save();
   console.log('Admin created:', adminEmail);
   process.exit(0);

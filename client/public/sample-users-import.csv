@@ -1,21 +1,5 @@
-fullName,email,school,role,roleOther,coursesInterested,coursesOther,interestedInCertification,createdAt
-Alex Rivera,alex.rivera1@example.com,Maple State University,Business Analyst,,AWS Cloud Practitioner;AWS Gen. AI,,yes,2025-08-12
-Bianca Santos,bianca.santos2@example.com,Northbridge College,System Developer,,AWS Certified Solution Architect,,true,2025-08-22
-Chen Wei,chen.wei3@example.com,Lakeside Institute,Quality Assurance,,AWS Cloud Practitioner,,no,2025-09-03
-Danielle Brooks,danielle.brooks4@example.com,Westfield University,Implementation Consultant,,AWS Gen. AI;AWS Certified Solution Architect,,yes,2025-09-14
-Ethan Patel,ethan.patel5@example.com,Riverdale Tech,Other,Data Engineer,AWS Cloud Practitioner,Azure Fundamentals;Docker Basics,true,2025-09-27
-Fatima Noor,fatima.noor6@example.com,Summit College,System Developer,,AWS Gen. AI,,false,2025-10-02
-Gabriel Kim,gabriel.kim7@example.com,Evergreen University,Business Analyst,,AWS Cloud Practitioner;AWS Certified Solution Architect,,yes,2025-10-08
-Hana Ito,hana.ito8@example.com,Pinecrest Institute,Quality Assurance,,AWS Cloud Practitioner,,no,2025-10-19
-Isabella Cruz,isabella.cruz9@example.com,Metro City University,Implementation Consultant,,AWS Gen. AI,,yes,2025-10-28
-Jamal Osei,jamal.osei10@example.com,Redwood University,System Developer,,AWS Certified Solution Architect,,true,2025-11-05
-Katrina Lee,katrina.lee11@example.com,Silverline College,Business Analyst,,AWS Cloud Practitioner;AWS Gen. AI,,yes,2025-11-12
-Liam Nguyen,liam.nguyen12@example.com,Harborview Institute,Other,Project Coordinator,AWS Cloud Practitioner,Scrum Foundations;ITIL Basics,no,2025-11-20
-Mia Johnson,mia.johnson13@example.com,Eastgate University,Quality Assurance,,AWS Gen. AI,,false,2025-11-29
-Noah Tan,noah.tan14@example.com,Cedar Valley College,System Developer,,AWS Cloud Practitioner;AWS Certified Solution Architect,,yes,2025-12-06
-Olivia Martin,olivia.martin15@example.com,Greenhill University,Implementation Consultant,,AWS Certified Solution Architect,,true,2025-12-14
-Priya Sharma,priya.sharma16@example.com,Starlight Institute,Business Analyst,,AWS Gen. AI,,yes,2025-12-21
-Quinn Baker,quinn.baker17@example.com,Valley Tech,Quality Assurance,,AWS Cloud Practitioner,,no,2026-01-03
-Rafael Diaz,rafael.diaz18@example.com,Stonebridge University,System Developer,,AWS Gen. AI;AWS Certified Solution Architect,,true,2026-01-10
-Sofia Anders,sofia.anders19@example.com,Newtown College,Implementation Consultant,,AWS Cloud Practitioner,,yes,2026-01-18
-Tariq Hassan,tariq.hassan20@example.com,Bluewater University,Other,Support Specialist,AWS Gen. AI,Google Cloud Digital Leader;Linux Essentials,false,2026-01-26
+fullName,email,school,coursesInterested,interestedInCertification,createdAt,trainingAttended,mobileNumber,gradeTeach,yearsExperience
+Alex Rivera,alex.rivera1@example.com,Maple State University,AWS Cloud Practitioner;AWS Gen. AI,yes,2025-08-12,true,555-0101,Grade 10,5
+Bianca Santos,bianca.santos2@example.com,Northbridge College,AWS Certified Solution Architect,true,2025-08-22,false,555-0102,College 2nd Year,7
+Chen Wei,chen.wei3@example.com,Lakeside Institute,AWS Cloud Practitioner,no,2025-09-03,true,555-0103,Grade 8,3
+Danielle Brooks,danielle.brooks4@example.com,Westfield University,AWS Gen. AI;AWS Certified Solution Architect,yes,2025-09-14,false,555-0104,College 4th Year,10

@@ -9,7 +9,19 @@ const { sendResetCodeEmail } = require('../utils/sendResetEmail');
 // Sign up
 router.post('/signup', async (req, res) => {
   try {
-    const { fullName, school, role, roleOther, coursesInterested, coursesOther, interestedInCertification, email, password } = req.body;
+    const {
+      fullName,
+      school,
+      coursesInterested,
+      coursesOther,
+      interestedInCertification,
+      trainingAttended,
+      mobileNumber,
+      gradeTeach,
+      yearsExperience,
+      email,
+      password
+    } = req.body;
 
     // Basic server-side validations
     const name = (fullName || '').trim();
@@ -31,12 +43,6 @@ router.post('/signup', async (req, res) => {
       return res.status(400).json({ msg: 'Password must include upper and lower case letters, a number, and a symbol.' });
     }
 
-    if (role === 'Other') {
-      const ro = (roleOther || '').trim();
-      if (!ro) return res.status(400).json({ msg: 'Please specify your role.' });
-      if (ro.length > 50) return res.status(400).json({ msg: 'Role description must be 50 characters or fewer.' });
-    }
-
     if (coursesInterested && (!Array.isArray(coursesInterested) || coursesInterested.length > 10)) {
       return res.status(400).json({ msg: 'Invalid coursesInterested value.' });
     }
@@ -50,7 +56,19 @@ router.post('/signup', async (req, res) => {
     const existingByFullName = await User.findOne({ fullName: name });
     if (existingByFullName) return res.status(400).json({ msg: 'This full name is already registered.' });
 
-    const user = new User({ fullName: name, school: schoolName, role, roleOther, coursesInterested, coursesOther, interestedInCertification, email: emailNorm, password });
+    const user = new User({
+      fullName: name,
+      school: schoolName,
+      coursesInterested,
+      coursesOther,
+      interestedInCertification,
+      trainingAttended: trainingAttended === true,
+      mobileNumber: mobileNumber ? String(mobileNumber).trim() : '',
+      gradeTeach: gradeTeach ? String(gradeTeach).trim() : '',
+      yearsExperience: Number.isFinite(Number(yearsExperience)) ? Number(yearsExperience) : undefined,
+      email: emailNorm,
+      password
+    });
     const salt = await bcrypt.genSalt(10);
     user.password = await bcrypt.hash(password, salt);
     await user.save();
@@ -59,7 +77,8 @@ router.post('/signup', async (req, res) => {
     res.json({ token });
   } catch (err) {
     if (err.code === 11000) {
-      const field = err.message.includes('fullName') ? 'full name' : 'email';
+      let field = 'email';
+      if (err.message.includes('fullName')) field = 'full name';
       return res.status(400).json({ msg: `This ${field} is already registered.` });
     }
     console.error(err.message);
@@ -71,7 +90,8 @@ router.post('/signup', async (req, res) => {
 router.post('/signin', async (req, res) => {
   try {
     const { email, password } = req.body;
-    const user = await User.findOne({ email });
+    const normalizedEmail = (email || '').trim().toLowerCase();
+    const user = await User.findOne({ email: normalizedEmail });
     if (!user) return res.status(400).json({ msg: 'Invalid credentials' });
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) return res.status(400).json({ msg: 'Invalid credentials' });
@@ -96,7 +116,7 @@ router.post('/forgot-password', async (req, res) => {
     if (!email || typeof email !== 'string') {
       return res.status(400).json({ msg: 'Email is required.' });
     }
-    const normalizedEmail = email.trim();
+    const normalizedEmail = email.trim().toLowerCase();
     const user = await User.findOne({ email: normalizedEmail });
     const code = generateResetCode();
     if (user) {
@@ -127,7 +147,7 @@ router.post('/reset-password', async (req, res) => {
     if (newPassword.length < 6) {
       return res.status(400).json({ msg: 'Password must be at least 6 characters.' });
     }
-    const normalizedEmail = email.trim();
+    const normalizedEmail = email.trim().toLowerCase();
     const user = await User.findOne({
       email: normalizedEmail,
       resetPasswordCode: String(code).trim(),

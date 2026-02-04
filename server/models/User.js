@@ -14,11 +14,6 @@ const UserSchema = new mongoose.Schema({
     },
   },
   school: { type: String, required: true, maxlength: 100 },
-  role: {
-    type: String,
-    required: true,
-  },
-  roleOther: { type: String, maxlength: 50 },
   coursesInterested: {
     type: [{ type: String }],
     validate: {
@@ -47,6 +42,10 @@ const UserSchema = new mongoose.Schema({
     maxlength: 254,
     match: [/^\S+@\S+\.\S+$/, 'Invalid email address'],
   },
+  trainingAttended: { type: Boolean, default: false },
+  mobileNumber: { type: String, maxlength: 30 },
+  gradeTeach: { type: String, maxlength: 100 },
+  yearsExperience: { type: Number, min: 0, max: 80 },
   password: { type: String, required: true, minlength: 8, maxlength: 128 },
   roleType: { type: String, enum: ['user', 'admin'], default: 'user' },
   createdAt: { type: Date, default: Date.now },

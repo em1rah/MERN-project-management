@@ -5,35 +5,22 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
 import { AuthLayout } from '@/components/auth-layout'
 import { BookOpen, Check, X } from 'lucide-react'
 
-const roles = [
-  'Business Analyst',
-  'Implementation Consultant',
-  'System Developer',
-  'Quality Assurance',
-  'Other',
-]
-
-const courses = ['AWS Gen. AI', 'AWS Cloud Practitioner', 'AWS Certified Solution Architect']
+const courses = ['Generative AI - Prompting', ' Machine Learning', 'Cloud Foundations']
 
 export default function SignUp() {
   const [form, setForm] = useState({
     fullName: '',
     school: '',
-    role: roles[0],
-    roleOther: '',
     coursesInterested: [],
     coursesOther: [],
     interestedInCertification: true,
+    trainingAttended: false,
+    mobileNumber: '',
+    gradeTeach: [],
+    yearsExperience: '',
     email: '',
     password: '',
   })
@@ -42,7 +29,15 @@ export default function SignUp() {
   const [loading, setLoading] = useState(false)
   const [errors, setErrors] = useState({})
   const [showPasswordRequirements, setShowPasswordRequirements] = useState(false)
+  const [showGrades, setShowGrades] = useState(false)
   const navigate = useNavigate()
+
+  const gradeOptions = [
+    'Pre-School',
+    'Primary',
+    'Secondary',
+    'Tertiary',
+  ]
 
   function toggleCourse(c) {
     setForm((s) => {
@@ -79,21 +74,31 @@ export default function SignUp() {
         if (!/^\S+@\S+\.\S+$/.test(v)) next.email = 'Enter a valid email address'
         else delete next.email
       }
-      if (field === 'roleOther') {
-        if (form.role === 'Other') {
-          const r = v.trim()
-          if (!r) next.roleOther = 'Please specify your role'
-          else if (r.length > 50) next.roleOther = 'Role description must be 50 characters or fewer'
-          else delete next.roleOther
-        } else {
-          delete next.roleOther
-        }
-      }
       if (field === 'password') {
         const pw = v
         const checks = passwordChecks(pw)
         if (!Object.values(checks).every(Boolean)) next.password = 'Password does not meet all requirements'
         else delete next.password
+      }
+      if (field === 'mobileNumber') {
+        const m = v.trim()
+        if (m && m.length > 30) next.mobileNumber = 'Mobile number must be 30 characters or fewer'
+        else delete next.mobileNumber
+      }
+      if (field === 'yearsExperience') {
+        if (v === '') {
+          delete next.yearsExperience
+        } else if (!/^\d+$/.test(v)) {
+          next.yearsExperience = 'Years experience must be a whole number'
+        } else if (Number(v) > 80) {
+          next.yearsExperience = 'Years experience must be 80 or fewer'
+        } else {
+          delete next.yearsExperience
+        }
+      }
+      if (field === 'gradeTeach') {
+        if (!Array.isArray(value) || value.length === 0) next.gradeTeach = 'Select at least one grade'
+        else delete next.gradeTeach
       }
       return next
     })
@@ -118,7 +123,9 @@ export default function SignUp() {
     validateField('school', form.school)
     validateField('email', form.email)
     validateField('password', form.password)
-    validateField('roleOther', form.roleOther)
+    validateField('mobileNumber', form.mobileNumber)
+    validateField('yearsExperience', form.yearsExperience)
+    validateField('gradeTeach', form.gradeTeach)
     const pwChecks = passwordChecks(form.password || '')
     const hasPwOK = Object.values(pwChecks).every(Boolean)
     const hasErrors = Object.keys(errors).length > 0
@@ -126,12 +133,12 @@ export default function SignUp() {
 
     setLoading(true)
 
-    if (form.role !== 'Other') {
-      form.roleOther = ''
-    }
-
     try {
-      const payload = { ...form }
+      const payload = {
+        ...form,
+        gradeTeach: Array.isArray(form.gradeTeach) ? form.gradeTeach.join(', ') : '',
+        yearsExperience: form.yearsExperience === '' ? undefined : Number(form.yearsExperience),
+      }
       const res = await API.post('/auth/signup', payload)
 
       if (res.data?.token) {
@@ -212,50 +219,6 @@ export default function SignUp() {
             </div>
           </div>
         </div>
-
-        <div className="space-y-2">
-          <Label>Role</Label>
-          <Select
-            value={form.role}
-            onValueChange={(value) => {
-              setForm((s) => ({ ...s, role: value }))
-              // validate roleOther when role changes
-              if (value !== 'Other') setErrors((p) => { const n = { ...p }; delete n.roleOther; return n })
-              else validateField('roleOther', form.roleOther)
-            }}
-          >
-            <SelectTrigger className="h-10">
-              <SelectValue placeholder="Select role" />
-            </SelectTrigger>
-            <SelectContent>
-              {roles.map((r) => (
-                <SelectItem key={r} value={r}>
-                  {r}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-
-        {form.role === 'Other' && (
-          <div className="space-y-2">
-            <Label>Specify your role</Label>
-            <Input
-              placeholder="Please specify your role"
-              value={form.roleOther}
-              onChange={(e) => setFieldValue('roleOther', e.target.value)}
-              maxLength={50}
-              className="h-10"
-              aria-invalid={errors.roleOther ? 'true' : 'false'}
-            />
-            <div className="flex justify-between text-xs">
-              {errors.roleOther && <p className="text-red-600">{errors.roleOther}</p>}
-              <p className={form.roleOther.length > 40 ? 'text-red-600 font-semibold' : 'text-muted-foreground'}>
-                {form.roleOther.length}/50
-              </p>
-            </div>
-          </div>
-        )}
 
         <div className="space-y-2">
           <Label className="font-semibold">Courses you&apos;re interested in</Label>
@@ -351,7 +314,79 @@ export default function SignUp() {
 
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="space-y-2">
-            <Label>Email address</Label>
+            <Label>Mobile number</Label>
+            <Input
+              type="text"
+              placeholder="e.g. 0917 123 4567"
+              value={form.mobileNumber}
+              onChange={(e) => setFieldValue('mobileNumber', e.target.value)}
+              maxLength={30}
+              className="h-10"
+              aria-invalid={errors.mobileNumber ? 'true' : 'false'}
+            />
+            {errors.mobileNumber && <p className="mt-1 text-sm text-red-600">{errors.mobileNumber}</p>}
+          </div>
+          <div className="space-y-2">
+            <Label>Years of experience</Label>
+            <Input
+              type="number"
+              min={0}
+              max={80}
+              placeholder="e.g. 5"
+              value={form.yearsExperience}
+              onChange={(e) => setFieldValue('yearsExperience', e.target.value)}
+              className="h-10"
+              aria-invalid={errors.yearsExperience ? 'true' : 'false'}
+            />
+            {errors.yearsExperience && <p className="mt-1 text-sm text-red-600">{errors.yearsExperience}</p>}
+          </div>
+        </div>
+
+        <div className="space-y-2">
+          <div className="flex items-center justify-between gap-3">
+            <Label className="block font-semibold">Grade teach</Label>
+            <button
+              type="button"
+              onClick={() => setShowGrades((s) => !s)}
+              className="text-sm font-medium text-primary hover:underline"
+            >
+              {showGrades ? 'Hide grades' : 'Show grades'}
+            </button>
+          </div>
+          {showGrades && (
+            <div className="grid gap-2 rounded-lg border border-border bg-muted/30 p-3 sm:grid-cols-2 lg:grid-cols-3">
+              {gradeOptions.map((g) => {
+                const checked = form.gradeTeach.includes(g)
+                return (
+                  <label key={g} className="flex items-center gap-2 text-sm">
+                    <input
+                      type="checkbox"
+                      checked={checked}
+                      onChange={() => {
+                        const next = checked
+                          ? form.gradeTeach.filter((x) => x !== g)
+                          : [...form.gradeTeach, g]
+                        setFieldValue('gradeTeach', next)
+                      }}
+                      className="h-4 w-4 rounded border-input accent-primary"
+                    />
+                    <span className="text-muted-foreground">{g}</span>
+                  </label>
+                )
+              })}
+            </div>
+          )}
+          {!showGrades && (
+            <div className="rounded-lg border border-dashed border-border px-3 py-2 text-sm text-muted-foreground">
+              {form.gradeTeach.length > 0 ? `${form.gradeTeach.length} selected` : 'No grades selected'}
+            </div>
+          )}
+          {errors.gradeTeach && <p className="mt-1 text-sm text-red-600">{errors.gradeTeach}</p>}
+        </div>
+
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div className="space-y-2">
+            <Label>Email address (login)</Label>
             <Input
               required
               type="email"
@@ -363,6 +398,11 @@ export default function SignUp() {
               aria-invalid={errors.email ? 'true' : 'false'}
             />
             {errors.email && <p className="mt-1 text-sm text-red-600">{errors.email}</p>}
+            {!errors.email && (
+              <p className="mt-1 text-xs text-muted-foreground">
+                This will be used to sign in to your account.
+              </p>
+            )}
           </div>
           <div className="space-y-2">
             <Label>Password</Label>

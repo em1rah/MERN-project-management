@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react'
 import API from '../api'
-import { Pie, Bar, Line, Doughnut } from 'react-chartjs-2'
+import { Pie, Bar, Line } from 'react-chartjs-2'
 import {
   Chart as ChartJS,
   ArcElement,
@@ -39,7 +39,6 @@ import {
   Eye,
   X,
   TrendingUp,
-  Briefcase,
   Layers,
   Sparkles,
   ChevronLeft,
@@ -66,6 +65,7 @@ export default function AdminDashboard() {
   const importInputRef = useRef(null)
   const [importing, setImporting] = useState(false)
   const [importMsg, setImportMsg] = useState('')
+  const [importDetails, setImportDetails] = useState(null)
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(() => {
     try {
       return localStorage.getItem('admin-sidebar-collapsed') === '1'
@@ -91,11 +91,13 @@ export default function AdminDashboard() {
   const importCsv = async (file) => {
     if (!file) return
     setImportMsg('')
+    setImportDetails(null)
     setImporting(true)
     try {
       const fd = new FormData()
       fd.append('file', file)
       const res = await API.post('/admin/users/import-csv', fd)
+      setImportDetails(res.data || null)
       setImportMsg(
         `Imported: ${res.data?.upsertedCount ?? 0} inserted, ${res.data?.modifiedCount ?? 0} modified` +
           (res.data?.errorCount ? ` (${res.data.errorCount} row errors)` : ''),
@@ -103,7 +105,9 @@ export default function AdminDashboard() {
       await fetchStats()
     } catch (e) {
       console.error(e)
-      setImportMsg(e.response?.data?.msg || 'Failed to import CSV')
+      const data = e.response?.data
+      setImportDetails(data || null)
+      setImportMsg(data?.msg || 'Failed to import CSV')
     } finally {
       setImporting(false)
       if (importInputRef.current) importInputRef.current.value = ''
@@ -158,15 +162,6 @@ export default function AdminDashboard() {
   const regLabels = regOverTime.map(({ _id }) => `${monthNames[_id.month - 1]} ${_id.year}`)
   const regData = regOverTime.map(({ count }) => count)
 
-  // Roles - sort so "Other" appears last
-  const byRoleRaw = stats?.byRole || []
-  const byRole = [...byRoleRaw].sort((a, b) => {
-    // Put "Other" at the end
-    if (a._id === 'Other') return 1
-    if (b._id === 'Other') return -1
-    // Otherwise maintain original order
-    return 0
-  })
   const coursesPerTrainee = stats?.coursesPerTrainee || []
   const cptOrder = ['0', '1', '2', '3+']
   const cptLabels = cptOrder.map((k) => (k === '3+' ? '3+' : `${k} course${k === '1' ? '' : 's'}`))
@@ -388,98 +383,6 @@ export default function AdminDashboard() {
     },
   }
 
-  // Beautiful color palette for role distribution
-  const roleColors = [
-    '#6366f1', // indigo-500
-    '#8b5cf6', // violet-500
-    '#ec4899', // pink-500
-    '#06b6d4', // cyan-500
-    '#10b981', // emerald-500
-    '#f59e0b', // amber-500
-    '#ef4444', // red-500
-    '#14b8a6', // teal-500
-  ]
-
-  const roleChartData = {
-    labels: byRole.map((r) => r._id),
-    datasets: [
-      {
-        data: byRole.map((r) => r.count),
-        backgroundColor: byRole.map((_, i) => roleColors[i % roleColors.length]),
-        borderWidth: 3,
-        borderColor: 'var(--card)',
-        hoverOffset: 12,
-        hoverBorderWidth: 4,
-      },
-    ],
-  }
-
-  const roleDoughnutOptions = {
-    responsive: true,
-    maintainAspectRatio: true,
-    cutout: '50%',
-    layout: {
-      padding: {
-        top: 10,
-        bottom: 10,
-        left: 10,
-        right: 80,
-      },
-    },
-    plugins: {
-      legend: {
-        position: 'right',
-        align: 'center',
-        labels: { 
-          padding: 10,
-          usePointStyle: true,
-          pointStyle: 'circle',
-          font: {
-            size: 12,
-            weight: 500,
-          },
-          boxWidth: 10,
-          boxHeight: 10,
-          textAlign: 'left',
-          maxWidth: 180,
-          generateLabels: (chart) => {
-            const data = chart.data
-            const total = data.datasets?.[0]?.data?.reduce((a, b) => a + b, 0) || 0
-            return (data.labels || []).map((label, i) => {
-              const value = data.datasets?.[0]?.data?.[i] ?? 0
-              const color = data.datasets?.[0]?.backgroundColor?.[i]
-              const pct = total ? Math.round((value / total) * 100) : 0
-              return {
-                text: `${label} (${pct}%)`,
-                fillStyle: color,
-                strokeStyle: color,
-                index: i,
-                fontColor: 'var(--foreground)',
-              }
-            })
-          },
-        },
-      },
-      tooltip: {
-        backgroundColor: 'rgba(0, 0, 0, 0.85)',
-        padding: 14,
-        titleColor: '#ffffff',
-        bodyColor: '#ffffff',
-        borderColor: 'rgba(255, 255, 255, 0.2)',
-        borderWidth: 1,
-        cornerRadius: 10,
-        displayColors: true,
-        callbacks: {
-          label: (ctx) => {
-            const total = ctx.dataset.data.reduce((a, b) => a + b, 0)
-            const pct = total ? Math.round((ctx.raw / total) * 100) : 0
-            return `${ctx.label}: ${ctx.raw} trainees (${pct}%)`
-          },
-        },
-      },
-    },
-  }
-
   const cptChartData = {
     labels: cptLabels,
     datasets: [
@@ -654,13 +557,13 @@ export default function AdminDashboard() {
                     <Badge variant="secondary" className="w-fit px-4 py-2 text-sm font-medium">
                       {stats?.totalUsers || 0} total trainees
                     </Badge>
-                    {/* <a
+                    <a
                       href="/sample-users-import.csv"
                       download
                       className="text-sm font-medium text-primary hover:underline"
                     >
-                      Sample CSV
-                    </a> */}
+                      Download sample CSV
+                    </a>
                     <input
                       ref={importInputRef}
                       type="file"
@@ -681,6 +584,32 @@ export default function AdminDashboard() {
                   </div>
                 </div>
                 {!!importMsg && <p className="mt-4 text-sm text-muted-foreground">{importMsg}</p>}
+                {!!importDetails && (
+                  <div className="mt-4 rounded-lg border border-border bg-muted/40 p-4 text-sm text-muted-foreground">
+                    <div className="font-medium text-foreground">Import details</div>
+                    {!!importDetails.msg && <p className="mt-2">Message: {importDetails.msg}</p>}
+                    <div className="mt-2 grid gap-2 sm:grid-cols-2">
+                      <div>Processed rows: {importDetails.processedRows ?? 'N/A'}</div>
+                      <div>Unique login emails: {importDetails.uniqueEmails ?? 'N/A'}</div>
+                      <div>Inserted: {importDetails.upsertedCount ?? 'N/A'}</div>
+                      <div>Modified: {importDetails.modifiedCount ?? 'N/A'}</div>
+                      <div>Matched: {importDetails.matchedCount ?? 'N/A'}</div>
+                      <div>Error count: {importDetails.errorCount ?? 'N/A'}</div>
+                    </div>
+                    {Array.isArray(importDetails.errors) && importDetails.errors.length > 0 && (
+                      <div className="mt-3 rounded-md border border-border bg-background/60 p-3">
+                        <div className="mb-2 font-medium text-foreground">Row errors (first 10)</div>
+                        <ul className="space-y-1">
+                          {importDetails.errors.slice(0, 10).map((er, i) => (
+                            <li key={`${er.rowNumber}-${i}`}>
+                              Row {er.rowNumber}: {er.email ? `${er.email} — ` : ''}{er.error}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                  </div>
+                )}
               </section>
 
               {/* Key metrics – 4 cards */}
@@ -761,27 +690,12 @@ export default function AdminDashboard() {
                 </div>
               </section>
 
-              {/* Roles + Courses per trainee */}
+              {/* Courses per trainee */}
               <section className="animate-in fade-in slide-in-from-bottom-4 duration-500 fill-mode-both" style={{ animationDelay: '200ms' }}>
                 <h3 className="mb-4 text-sm font-medium uppercase tracking-wider text-muted-foreground">
-                  Demographics & engagement
+                  Engagement
                 </h3>
-                <div className="grid gap-6 lg:grid-cols-2">
-                  {byRole.length > 0 && (
-                    <Card className="overflow-hidden transition-shadow hover:shadow-md">
-                      <CardHeader className="flex flex-row items-center gap-2 pb-2">
-                        <Briefcase className="h-5 w-5 text-primary" />
-                        <CardTitle className="text-base">Role distribution</CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="h-[250px] w-full flex items-center justify-center">
-                          <div className="w-full  flex items-center ">
-                            <Doughnut data={roleChartData} options={roleDoughnutOptions} />
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  )}
+                <div className="grid gap-6 lg:grid-cols-1">
                   <Card className="overflow-hidden transition-shadow hover:shadow-md">
                     <CardHeader className="flex flex-row items-center gap-2 pb-2">
                       <Layers className="h-5 w-5 text-primary" />

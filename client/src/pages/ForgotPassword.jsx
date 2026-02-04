@@ -87,7 +87,7 @@ export default function ForgotPassword() {
   return (
     <AuthLayout
       headline="Reset password"
-      subline={step === 1 ? 'Enter your email to receive a 6-digit reset code.' : 'Enter the code from your email and choose a new password.'}
+      subline={step === 1 ? 'Enter your login email to receive a 6-digit reset code.' : 'Enter the code from your email and choose a new password.'}
     >
       <div className="flex flex-col items-center text-center">
         <div
@@ -100,7 +100,7 @@ export default function ForgotPassword() {
           {step === 1 ? 'Forgot your password?' : 'Enter reset code'}
         </h2>
         <p className="mt-1 text-sm text-muted-foreground">
-          {step === 1 ? 'We’ll send a code to your email.' : 'Check your inbox for the 6-digit code.'}
+          {step === 1 ? 'We’ll send a code to your login email.' : 'Check your inbox for the 6-digit code.'}
         </p>
       </div>
 
@@ -118,14 +118,14 @@ export default function ForgotPassword() {
       {step === 1 && (
         <form onSubmit={handleRequestCode} className="mt-8 space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
+            <Label htmlFor="email">Login email</Label>
             <div className="relative">
               <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-primary" />
               <Input
                 id="email"
                 required
                 type="email"
-                placeholder="Enter your email address"
+                placeholder="Enter your login email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="h-10 pl-9"
@@ -141,7 +141,7 @@ export default function ForgotPassword() {
       {step === 2 && (
         <form onSubmit={handleResetPassword} className="mt-8 space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="email-display">Email</Label>
+            <Label htmlFor="email-display">Login email</Label>
             <div className="relative">
               <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-primary" />
               <Input

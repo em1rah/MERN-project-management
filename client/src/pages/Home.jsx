@@ -11,6 +11,9 @@ import {
   Sparkles,
   BookOpen,
   TrendingUp,
+  Mail,
+  Phone,
+  ClipboardList,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -88,7 +91,7 @@ export default function Home() {
           <h2 className="mb-4 text-sm font-medium uppercase tracking-wider text-muted-foreground">
             Your profile
           </h2>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             <Card className="overflow-hidden border-l-4 border-l-primary/80 transition-shadow hover:shadow-md">
               <CardHeader className="flex flex-row items-center gap-3 space-y-0 pb-2">
                 <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
@@ -99,23 +102,6 @@ export default function Home() {
                     School
                   </CardTitle>
                   <p className="truncate text-lg font-semibold text-foreground">{user.school}</p>
-                </div>
-              </CardHeader>
-            </Card>
-
-            <Card className="overflow-hidden border-l-4 border-l-primary/80 transition-shadow hover:shadow-md">
-              <CardHeader className="flex flex-row items-center gap-3 space-y-0 pb-2">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                  <Briefcase className="h-5 w-5" />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <CardTitle className="text-sm font-medium text-muted-foreground">
-                    Role
-                  </CardTitle>
-                  <p className="truncate text-lg font-semibold text-foreground">
-                    {user.role}
-                    {user.roleOther ? ` (${user.roleOther})` : ''}
-                  </p>
                 </div>
               </CardHeader>
             </Card>
@@ -153,6 +139,100 @@ export default function Home() {
                   </CardTitle>
                   <p className="text-lg font-semibold text-foreground">
                     {user.interestedInCertification ? 'Interested' : 'Not interested'}
+                  </p>
+                </div>
+              </CardHeader>
+            </Card>
+          </div>
+        </section>
+
+        <section className="mb-8">
+          <h2 className="mb-4 text-sm font-medium uppercase tracking-wider text-muted-foreground">
+            Contact & training
+          </h2>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <Card className="overflow-hidden border-l-4 border-l-primary/80 transition-shadow hover:shadow-md">
+              <CardHeader className="flex flex-row items-center gap-3 space-y-0 pb-2">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                  <Mail className="h-5 w-5" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <CardTitle className="text-sm font-medium text-muted-foreground">
+                    Email
+                  </CardTitle>
+                  <p className="truncate text-sm font-semibold text-foreground">
+                    {user.email || 'N/A'}
+                  </p>
+                </div>
+              </CardHeader>
+            </Card>
+
+            <Card className="overflow-hidden border-l-4 border-l-primary/80 transition-shadow hover:shadow-md">
+              <CardHeader className="flex flex-row items-center gap-3 space-y-0 pb-2">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                  <Phone className="h-5 w-5" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <CardTitle className="text-sm font-medium text-muted-foreground">
+                    Mobile Number
+                  </CardTitle>
+                  <p className="truncate text-sm font-semibold text-foreground">
+                    {user.mobileNumber || 'N/A'}
+                  </p>
+                </div>
+              </CardHeader>
+            </Card>
+
+            <Card className="overflow-hidden border-l-4 border-l-primary/80 transition-shadow hover:shadow-md">
+              <CardHeader className="flex flex-row items-center gap-3 space-y-0 pb-2">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                  <ClipboardList className="h-5 w-5" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <CardTitle className="text-sm font-medium text-muted-foreground">
+                    Training Attended
+                  </CardTitle>
+                  <p className="truncate text-sm font-semibold text-foreground">
+                    {user.trainingAttended === true ? 'Yes' : user.trainingAttended === false ? 'No' : 'N/A'}
+                  </p>
+                </div>
+              </CardHeader>
+            </Card>
+          </div>
+        </section>
+
+        <section className="mb-8">
+          <h2 className="mb-4 text-sm font-medium uppercase tracking-wider text-muted-foreground">
+            Teaching profile
+          </h2>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-2">
+            <Card className="overflow-hidden border-l-4 border-l-primary/80 transition-shadow hover:shadow-md">
+              <CardHeader className="flex flex-row items-center gap-3 space-y-0 pb-2">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                  <GraduationCap className="h-5 w-5" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <CardTitle className="text-sm font-medium text-muted-foreground">
+                    Grade Teach
+                  </CardTitle>
+                  <p className="truncate text-sm font-semibold text-foreground">
+                    {user.gradeTeach || 'N/A'}
+                  </p>
+                </div>
+              </CardHeader>
+            </Card>
+
+            <Card className="overflow-hidden border-l-4 border-l-primary/80 transition-shadow hover:shadow-md">
+              <CardHeader className="flex flex-row items-center gap-3 space-y-0 pb-2">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                  <Briefcase className="h-5 w-5" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <CardTitle className="text-sm font-medium text-muted-foreground">
+                    Years Experience
+                  </CardTitle>
+                  <p className="truncate text-sm font-semibold text-foreground">
+                    {Number.isFinite(user.yearsExperience) ? user.yearsExperience : 'N/A'}
                   </p>
                 </div>
               </CardHeader>

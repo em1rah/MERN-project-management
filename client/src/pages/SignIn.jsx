@@ -54,19 +54,19 @@ export default function SignIn() {
           <BookOpen className="h-7 w-7" />
         </div>
         <h2 className="text-2xl font-bold tracking-tight text-foreground">Hello! Welcome back</h2>
-        <p className="mt-1 text-sm text-muted-foreground">Sign in with your email and password.</p>
+        <p className="mt-1 text-sm text-muted-foreground">Sign in with your login email and password.</p>
       </div>
 
       <form onSubmit={submit} className="mt-8 space-y-4">
         <div className="space-y-2">
-          <Label htmlFor="email">Email</Label>
+          <Label htmlFor="email">Login email</Label>
           <div className="relative">
             <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-primary" />
             <Input
               id="email"
               required
               type="email"
-              placeholder="Enter your email address"
+              placeholder="Enter your login email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="h-10 pl-9"

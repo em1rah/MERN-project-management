@@ -63,7 +63,7 @@ export default function UserManagement({ onImported }) {
     (u) =>
       u.fullName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       u.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      u.role?.toLowerCase().includes(searchTerm.toLowerCase())
+      u.mobileNumber?.toLowerCase().includes(searchTerm.toLowerCase())
   )
 
   const totalPages = Math.max(1, Math.ceil(filteredUsers.length / pageSize))
@@ -92,7 +92,7 @@ export default function UserManagement({ onImported }) {
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
             type="text"
-            placeholder="Search by name, email, or role..."
+            placeholder="Search by name, email, or mobile..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="h-10 pl-9"
@@ -141,7 +141,7 @@ export default function UserManagement({ onImported }) {
           <CardContent className="space-y-3 p-4">
             <div className="flex flex-wrap items-center gap-2 text-sm">
               <Badge variant="secondary">Processed: {importResult.processedRows}</Badge>
-              <Badge variant="secondary">Unique emails: {importResult.uniqueEmails}</Badge>
+              <Badge variant="secondary">Unique login emails: {importResult.uniqueEmails}</Badge>
               <Badge variant="secondary">Inserted: {importResult.upsertedCount}</Badge>
               <Badge variant="secondary">Matched: {importResult.matchedCount}</Badge>
               <Badge variant="secondary">Modified: {importResult.modifiedCount}</Badge>
@@ -179,8 +179,11 @@ export default function UserManagement({ onImported }) {
                 <TableRow>
                   <TableHead className="px-5 py-4 text-sm font-medium">Full Name</TableHead>
                   <TableHead className="px-5 py-4 text-sm font-medium">Email</TableHead>
-                  <TableHead className="px-5 py-4 text-sm font-medium">Role</TableHead>
                   <TableHead className="px-5 py-4 text-sm font-medium">School</TableHead>
+                  <TableHead className="px-5 py-4 text-sm font-medium">Training Attended</TableHead>
+                  <TableHead className="px-5 py-4 text-sm font-medium">Mobile</TableHead>
+                  <TableHead className="px-5 py-4 text-sm font-medium">Grade Teach</TableHead>
+                  <TableHead className="px-5 py-4 text-sm font-medium">Years Exp</TableHead>
                   <TableHead className="px-5 py-4 text-center text-sm font-medium">Certification Interest</TableHead>
                 </TableRow>
               </TableHeader>
@@ -190,10 +193,15 @@ export default function UserManagement({ onImported }) {
                     <TableRow key={u._id}>
                       <TableCell className="px-5 py-4 font-medium">{u.fullName}</TableCell>
                       <TableCell className="px-5 py-4 text-muted-foreground">{u.email}</TableCell>
-                      <TableCell className="px-5 py-4">
-                        <Badge variant="secondary">{u.role}</Badge>
-                      </TableCell>
                       <TableCell className="px-5 py-4 text-muted-foreground">{u.school || 'N/A'}</TableCell>
+                      <TableCell className="px-5 py-4 text-muted-foreground">
+                        {u.trainingAttended === true ? 'Yes' : u.trainingAttended === false ? 'No' : 'N/A'}
+                      </TableCell>
+                      <TableCell className="px-5 py-4 text-muted-foreground">{u.mobileNumber || 'N/A'}</TableCell>
+                      <TableCell className="px-5 py-4 text-muted-foreground">{u.gradeTeach || 'N/A'}</TableCell>
+                      <TableCell className="px-5 py-4 text-muted-foreground">
+                        {Number.isFinite(u.yearsExperience) ? u.yearsExperience : 'N/A'}
+                      </TableCell>
                       <TableCell className="px-5 py-4 text-center">
                         {u.interestedInCertification ? (
                           <Badge variant="success">Yes</Badge>
@@ -210,7 +218,7 @@ export default function UserManagement({ onImported }) {
                   ))
                 ) : (
                   <TableRow>
-                    <TableCell colSpan={5} className="h-40 px-5 py-8 text-center">
+                    <TableCell colSpan={8} className="h-40 px-5 py-8 text-center">
                       <div className="flex flex-col items-center gap-3 text-muted-foreground">
                         <Inbox className="h-10 w-10" />
                         <p>No users found</p>

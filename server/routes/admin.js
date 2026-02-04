@@ -6,7 +6,6 @@ const User = require('../models/User');
 const multer = require('multer');
 const { parse } = require('csv-parse/sync');
 const bcrypt = require('bcryptjs');
-const crypto = require('crypto');
 
 // Apply auth + admin check to all admin routes
 router.use(auth, ensureAdmin);
@@ -30,9 +29,9 @@ function splitList(value) {
   if (value == null) return [];
   const raw = String(value).trim();
   if (!raw) return [];
-  // Prefer semicolon or pipe as list separators to avoid CSV delimiter conflicts.
+  // Prefer semicolon or pipe; allow commas when quoted.
   return raw
-    .split(/[;|]/g)
+    .split(/[;|,]/g)
     .map((s) => s.trim())
     .filter(Boolean);
 }
@@ -40,6 +39,29 @@ function splitList(value) {
 function isLikelyEmail(email) {
   const e = String(email ?? '').trim();
   return /^\S+@\S+\.\S+$/.test(e);
+}
+
+function parseCsvDate(value) {
+  if (!value) return null;
+  const raw = String(value).trim();
+  if (!raw) return null;
+  // Accept M/D/YYYY or M/D/YYYY HH:mm (24h)
+  const match = raw.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})(?:\s+(\d{1,2}):(\d{2}))?$/);
+  if (match) {
+    const [, m, d, y, hh, mm] = match;
+    const date = new Date(
+      Number(y),
+      Number(m) - 1,
+      Number(d),
+      hh ? Number(hh) : 0,
+      mm ? Number(mm) : 0,
+      0,
+      0
+    );
+    return Number.isNaN(date.getTime()) ? null : date;
+  }
+  const parsed = new Date(raw);
+  return Number.isNaN(parsed.getTime()) ? null : parsed;
 }
 
 // Stats for dashboard (includes extended analytics)
@@ -82,12 +104,6 @@ router.get('/stats', async (req, res) => {
       { $limit: 10 },
     ]);
 
-    // Role distribution
-    const byRole = await User.aggregate([
-      { $match: { roleType: 'user' } },
-      { $group: { _id: '$role', count: { $sum: 1 } } },
-      { $sort: { count: -1 } },
-    ]);
 
     // Courses per trainee (0, 1, 2, 3+)
     const coursesPerTrainee = await User.aggregate([
@@ -116,7 +132,6 @@ router.get('/stats', async (req, res) => {
       courses: coursesAgg,
       registrationsOverTime,
       bySchool,
-      byRole,
       coursesPerTrainee,
     });
   } catch (err) {
@@ -136,8 +151,8 @@ router.get('/users', async (req, res) => {
 });
 
 // Import/Upsert trainees from CSV (admin only)
-// CSV required columns: fullName, school, role, interestedInCertification, email
-// Optional columns: roleOther, coursesInterested, coursesOther, password, createdAt
+// CSV required columns: fullName, school, interestedInCertification, email
+// Optional columns: coursesInterested, coursesOther, password, createdAt, trainingAttended, mobileNumber, gradeTeach, yearsExperience
 router.post('/users/import-csv', upload.single('file'), async (req, res) => {
   try {
     if (!req.file) {
@@ -163,7 +178,7 @@ router.post('/users/import-csv', upload.single('file'), async (req, res) => {
       return res.status(400).json({ msg: 'CSV header row is missing or empty' });
     }
 
-    const requiredHeaders = ['fullName', 'school', 'role', 'interestedInCertification', 'email'];
+    const requiredHeaders = ['fullName', 'school', 'interestedInCertification', 'email'];
     const missingHeaders = requiredHeaders.filter((h) => !headers.includes(h));
     if (missingHeaders.length) {
       return res.status(400).json({
@@ -211,8 +226,8 @@ router.post('/users/import-csv', upload.single('file'), async (req, res) => {
 
       const fullName = String(row.fullName ?? '').trim();
       const school = String(row.school ?? '').trim();
-      const role = String(row.role ?? '').trim();
       const interested = parseBoolean(row.interestedInCertification);
+      const emailOriginal = String(row.email ?? '').trim().toLowerCase();
 
       if (!fullName) {
         errors.push({ rowNumber, email, error: 'fullName is required' });
@@ -222,8 +237,8 @@ router.post('/users/import-csv', upload.single('file'), async (req, res) => {
         errors.push({ rowNumber, email, error: 'school is required' });
         continue;
       }
-      if (!role) {
-        errors.push({ rowNumber, email, error: 'role is required' });
+      if (!emailOriginal || !isLikelyEmail(emailOriginal)) {
+        errors.push({ rowNumber, email, error: 'email is required and must be valid' });
         continue;
       }
       if (interested === null) {
@@ -235,13 +250,27 @@ router.post('/users/import-csv', upload.single('file'), async (req, res) => {
         continue;
       }
 
-      const roleOther = hasCol('roleOther') ? String(row.roleOther ?? '').trim() : undefined;
       const coursesInterested = hasCol('coursesInterested') ? splitList(row.coursesInterested) : undefined;
       const coursesOther = hasCol('coursesOther') ? splitList(row.coursesOther) : undefined;
+      const trainingAttendedRaw = hasCol('trainingAttended') ? String(row.trainingAttended ?? '').trim() : '';
+      const trainingAttended = trainingAttendedRaw ? parseBoolean(trainingAttendedRaw) : undefined;
+      const mobileNumber = hasCol('mobileNumber') ? String(row.mobileNumber ?? '').trim() : undefined;
+      const gradeTeach = hasCol('gradeTeach') ? String(row.gradeTeach ?? '').trim() : undefined;
+      const yearsExperienceRaw = hasCol('yearsExperience') ? String(row.yearsExperience ?? '').trim() : '';
+      const yearsExperienceMatch = yearsExperienceRaw.match(/-?\d+(\.\d+)?/);
+      const yearsExperience = yearsExperienceMatch ? Number(yearsExperienceMatch[0]) : undefined;
+      if (yearsExperienceRaw && !Number.isFinite(yearsExperience)) {
+        errors.push({ rowNumber, email, error: 'yearsExperience must be a number' });
+        continue;
+      }
+      if (trainingAttendedRaw && trainingAttended === null && hasCol('trainingAttended')) {
+        errors.push({ rowNumber, email, error: 'trainingAttended must be true/false (or yes/no, 1/0)' });
+        continue;
+      }
 
       const createdAt =
         hasCol('createdAt') && row.createdAt
-          ? new Date(String(row.createdAt).trim())
+          ? parseCsvDate(row.createdAt)
           : undefined;
       const createdAtValid = !createdAt || !Number.isNaN(createdAt.getTime());
       if (!createdAtValid) {
@@ -250,22 +279,24 @@ router.post('/users/import-csv', upload.single('file'), async (req, res) => {
       }
 
       const passwordPlain = hasCol('password') ? String(row.password ?? '').trim() : '';
-      const passwordToUse = passwordPlain || crypto.randomBytes(12).toString('hex'); // 24 chars
+      const passwordToUse = passwordPlain || 'password123!';
       const passwordHash = await bcrypt.hash(passwordToUse, 10);
 
       const set = {
         fullName,
         school,
-        role,
         interestedInCertification: interested,
         roleType: 'user',
       };
-      if (hasCol('roleOther')) set.roleOther = roleOther;
       if (hasCol('coursesInterested')) set.coursesInterested = coursesInterested;
       if (hasCol('coursesOther')) set.coursesOther = coursesOther;
+      if (hasCol('trainingAttended')) set.trainingAttended = trainingAttended;
+      if (hasCol('mobileNumber')) set.mobileNumber = mobileNumber;
+      if (hasCol('gradeTeach')) set.gradeTeach = gradeTeach;
+      if (hasCol('yearsExperience')) set.yearsExperience = yearsExperience;
 
       const setOnInsert = {
-        email,
+        email: emailOriginal,
         password: passwordHash,
         createdAt: createdAt || new Date(),
       };
@@ -277,7 +308,7 @@ router.post('/users/import-csv', upload.single('file'), async (req, res) => {
 
       ops.push({
         updateOne: {
-          filter: { email },
+          filter: { email: emailOriginal },
           update: {
             $set: set,
             $setOnInsert: setOnInsert,

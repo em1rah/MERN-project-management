@@ -13,8 +13,6 @@ async function seed() {
       {
         fullName: 'Alice Santos',
         school: 'State University',
-        role: 'Business Analyst',
-        roleOther: '',
         coursesInterested: ['AWS Gen. AI','AWS Cloud Practitioner'],
         coursesOther: [],
         interestedInCertification: true,
@@ -24,8 +22,6 @@ async function seed() {
       {
         fullName: 'Ben Cruz',
         school: 'Tech Institute',
-        role: 'System Developer',
-        roleOther: '',
         coursesInterested: ['AWS Certified Solution Architect'],
         coursesOther: ['Kubernetes Basics'],
         interestedInCertification: false,
@@ -35,8 +31,6 @@ async function seed() {
       {
         fullName: 'Carla Reyes',
         school: 'Private College',
-        role: 'Other',
-        roleOther: 'Data Engineer',
         coursesInterested: ['AWS Cloud Practitioner'],
         coursesOther: [],
         interestedInCertification: true,
