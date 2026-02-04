@@ -13,7 +13,13 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import { Search, Inbox, Upload, AlertTriangle, ChevronLeft, ChevronRight, Eye, Pencil, Trash2 } from 'lucide-react'
+import { Search, Inbox, Upload, AlertTriangle, ChevronLeft, ChevronRight, Eye, Pencil, Trash2, Download, FileDown } from 'lucide-react'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 import {
   Dialog,
   DialogContent,
@@ -56,6 +62,107 @@ export default function UserManagement({ onImported }) {
       .split(/[;|,]/g)
       .map((s) => s.trim())
       .filter(Boolean)
+
+  const exportCsv = () => {
+    const headers = [
+      'fullName',
+      'email',
+      'school',
+      'coursesInterested',
+      'interestedInCertification',
+      'createdAt',
+      'trainingAttended',
+      'mobileNumber',
+      'gradeTeach',
+      'yearsExperience',
+    ]
+    const rows = filteredUsers.map((u) => [
+      u.fullName || '',
+      u.email || '',
+      u.school || '',
+      Array.isArray(u.coursesInterested) ? u.coursesInterested.join('; ') : '',
+      u.interestedInCertification ? 'Yes' : 'No',
+      u.createdAt ? new Date(u.createdAt).toLocaleString() : '',
+      u.trainingAttended === true ? 'Yes' : u.trainingAttended === false ? 'No' : '',
+      u.mobileNumber || '',
+      u.gradeTeach || '',
+      Number.isFinite(u.yearsExperience) ? u.yearsExperience : '',
+    ])
+
+    const escape = (val) => {
+      const v = String(val ?? '')
+      return /[",\n]/.test(v) ? `"${v.replace(/"/g, '""')}"` : v
+    }
+    const csv = [headers.join(','), ...rows.map((r) => r.map(escape).join(','))].join('\n')
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = 'users-export.csv'
+    a.click()
+    URL.revokeObjectURL(url)
+  }
+
+  const exportPdf = () => {
+    const win = window.open('', '_blank')
+    if (!win) return
+    const rows = filteredUsers.map((u) => `
+      <tr>
+        <td>${u.fullName || ''}</td>
+        <td>${u.email || ''}</td>
+        <td>${u.school || ''}</td>
+        <td>${Array.isArray(u.coursesInterested) ? u.coursesInterested.join('; ') : ''}</td>
+        <td>${u.interestedInCertification ? 'Yes' : 'No'}</td>
+        <td>${u.createdAt ? new Date(u.createdAt).toLocaleString() : ''}</td>
+        <td>${u.trainingAttended === true ? 'Yes' : u.trainingAttended === false ? 'No' : ''}</td>
+        <td>${u.mobileNumber || ''}</td>
+        <td>${u.gradeTeach || ''}</td>
+        <td>${Number.isFinite(u.yearsExperience) ? u.yearsExperience : ''}</td>
+      </tr>
+    `).join('')
+
+    win.document.write(`
+      <html>
+        <head>
+          <title>Users Export</title>
+          <style>
+            body { font-family: Arial, sans-serif; padding: 24px; color: #111; }
+            h1 { font-size: 18px; margin-bottom: 12px; }
+            table { width: 100%; border-collapse: collapse; font-size: 12px; }
+            th, td { border: 1px solid #ddd; padding: 6px; text-align: left; vertical-align: top; }
+            th { background: #f5f5f5; }
+            .meta { margin-bottom: 12px; font-size: 12px; color: #555; }
+          </style>
+        </head>
+        <body>
+          <h1>User Management Export</h1>
+          <div class="meta">Rows: ${filteredUsers.length} • Generated: ${new Date().toLocaleString()}</div>
+          <table>
+            <thead>
+              <tr>
+                <th>Full Name</th>
+                <th>Email</th>
+                <th>School</th>
+                <th>Courses Interested</th>
+                <th>Certification</th>
+                <th>Created At</th>
+                <th>Training Attended</th>
+                <th>Mobile</th>
+                <th>Grade Teach</th>
+                <th>Years Exp</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${rows || ''}
+            </tbody>
+          </table>
+        </body>
+      </html>
+    `)
+    win.document.close()
+    win.focus()
+    win.print()
+  }
 
   const fetchUsers = () =>
     API.get('/admin/users')
@@ -181,6 +288,27 @@ export default function UserManagement({ onImported }) {
             onChange={(e) => setSearchTerm(e.target.value)}
             className="h-10 pl-9"
           />
+        </div>
+
+        <div className="flex flex-wrap items-center gap-3">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button type="button" variant="outline" className="h-10">
+                <Download className="mr-2 h-4 w-4" />
+                Export
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={exportCsv}>
+                <FileDown className="mr-2 h-4 w-4" />
+                Export CSV
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={exportPdf}>
+                <FileDown className="mr-2 h-4 w-4" />
+                Generate PDF
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
 
         {/* <div className="flex flex-wrap items-center gap-3">
