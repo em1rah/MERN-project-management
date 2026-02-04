@@ -8,7 +8,7 @@ import { Badge } from '@/components/ui/badge'
 import { AuthLayout } from '@/components/auth-layout'
 import { BookOpen, Check, X } from 'lucide-react'
 
-const courses = ['Generative AI - Prompting', ' Machine Learning', 'Cloud Foundations']
+const courses = ['Generative AI - Prompting', 'Machine Learning', 'Cloud Foundations']
 
 export default function SignUp() {
   const [form, setForm] = useState({
@@ -262,12 +262,13 @@ export default function SignUp() {
                   return
                 }
                 setForm((s) => {
+                  const normalized = v.replace(/\s+/g, ' ')
                   if (!Array.isArray(s.coursesOther)) s.coursesOther = []
                   if (s.coursesOther.length >= 10) {
                     alert('You can add up to 10 other courses')
                     return s
                   }
-                  return { ...s, coursesOther: [...s.coursesOther, v] }
+                  return { ...s, coursesOther: [...s.coursesOther, normalized] }
                 })
                 setOtherCourseInput('')
               }}

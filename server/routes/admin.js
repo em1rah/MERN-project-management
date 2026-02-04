@@ -36,6 +36,12 @@ function splitList(value) {
     .filter(Boolean);
 }
 
+function normalizeList(arr) {
+  return (Array.isArray(arr) ? arr : [])
+    .map((s) => String(s ?? '').trim().replace(/\s+/g, ' '))
+    .filter(Boolean);
+}
+
 function isLikelyEmail(email) {
   const e = String(email ?? '').trim();
   return /^\S+@\S+\.\S+$/.test(e);
@@ -366,8 +372,8 @@ router.post('/users/import-csv', upload.single('file'), async (req, res) => {
         continue;
       }
 
-      const coursesInterested = hasCol('coursesInterested') ? splitList(row.coursesInterested) : undefined;
-      const coursesOther = hasCol('coursesOther') ? splitList(row.coursesOther) : undefined;
+      const coursesInterested = hasCol('coursesInterested') ? normalizeList(splitList(row.coursesInterested)) : undefined;
+      const coursesOther = hasCol('coursesOther') ? normalizeList(splitList(row.coursesOther)) : undefined;
       const trainingAttendedRaw = hasCol('trainingAttended') ? String(row.trainingAttended ?? '').trim() : '';
       const trainingAttended = trainingAttendedRaw ? parseBoolean(trainingAttendedRaw) : undefined;
       const mobileNumber = hasCol('mobileNumber') ? String(row.mobileNumber ?? '').trim() : undefined;

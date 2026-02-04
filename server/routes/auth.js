@@ -50,6 +50,14 @@ router.post('/signup', async (req, res) => {
       return res.status(400).json({ msg: 'Invalid coursesOther value.' });
     }
 
+    const normalizeList = (arr) =>
+      (Array.isArray(arr) ? arr : [])
+        .map((s) => String(s ?? '').trim().replace(/\s+/g, ' '))
+        .filter(Boolean);
+
+    const normalizedInterested = normalizeList(coursesInterested);
+    const normalizedOther = normalizeList(coursesOther);
+
     const existingByEmail = await User.findOne({ email: emailNorm });
     if (existingByEmail) return res.status(400).json({ msg: 'This email is already registered.' });
 
@@ -59,8 +67,8 @@ router.post('/signup', async (req, res) => {
     const user = new User({
       fullName: name,
       school: schoolName,
-      coursesInterested,
-      coursesOther,
+      coursesInterested: normalizedInterested,
+      coursesOther: normalizedOther,
       interestedInCertification,
       trainingAttended: trainingAttended === true,
       mobileNumber: mobileNumber ? String(mobileNumber).trim() : '',
