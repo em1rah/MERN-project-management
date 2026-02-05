@@ -618,61 +618,84 @@ export default function UserManagement({ onImported }) {
             <DialogDescription>Read-only profile information.</DialogDescription>
           </DialogHeader>
           {viewUser && (
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div>
-                <p className="text-xs text-muted-foreground">Full name</p>
-                <p className="font-medium">{viewUser.fullName}</p>
-              </div>
-              <div>
-                <p className="text-xs text-muted-foreground">Email</p>
-                <p className="font-medium">{viewUser.email}</p>
-              </div>
-              <div>
-                <p className="text-xs text-muted-foreground">School</p>
-                <p className="font-medium">{viewUser.school || 'N/A'}</p>
-              </div>
-              <div>
-                <p className="text-xs text-muted-foreground">Mobile</p>
-                <p className="font-medium">{viewUser.mobileNumber || 'N/A'}</p>
-              </div>
-              <div>
-                <p className="text-xs text-muted-foreground">Grade teach</p>
-                <p className="font-medium">{viewUser.gradeTeach || 'N/A'}</p>
-              </div>
-              <div>
-                <p className="text-xs text-muted-foreground">Years experience</p>
-                <p className="font-medium">
-                  {Number.isFinite(viewUser.yearsExperience) ? viewUser.yearsExperience : 'N/A'}
-                </p>
-              </div>
-              <div>
-                <p className="text-xs text-muted-foreground">Training attended</p>
-                <p className="font-medium">
-                  {viewUser.trainingAttended === true ? 'Yes' : viewUser.trainingAttended === false ? 'No' : 'N/A'}
-                </p>
-              </div>
-              <div>
-                <p className="text-xs text-muted-foreground">Certification interest</p>
-                <p className="font-medium">
-                  {viewUser.interestedInCertification ? 'Yes' : 'No'}
-                </p>
-              </div>
-              <div className="sm:col-span-2">
-                <p className="text-xs text-muted-foreground">Courses interested</p>
-                <p className="font-medium">
-                  {Array.isArray(viewUser.coursesInterested) && viewUser.coursesInterested.length
-                    ? viewUser.coursesInterested.join(', ')
-                    : 'N/A'}
-                </p>
-              </div>
-              <div className="sm:col-span-2">
-                <p className="text-xs text-muted-foreground">Other courses</p>
-                <p className="font-medium">
-                  {Array.isArray(viewUser.coursesOther) && viewUser.coursesOther.length
-                    ? viewUser.coursesOther.join(', ')
-                    : 'N/A'}
-                </p>
-              </div>
+            <div className="space-y-4">
+              <Card>
+                <CardContent className="space-y-3 p-4">
+                  <p className="text-sm font-medium">Basic information</p>
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <div>
+                      <p className="text-xs text-muted-foreground">Full name</p>
+                      <p className="font-medium">{viewUser.fullName}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-muted-foreground">Email</p>
+                      <p className="font-medium">{viewUser.email}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-muted-foreground">School</p>
+                      <p className="font-medium">{viewUser.school || 'N/A'}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-muted-foreground">Mobile</p>
+                      <p className="font-medium">{viewUser.mobileNumber || 'N/A'}</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardContent className="space-y-3 p-4">
+                  <p className="text-sm font-medium">Training details</p>
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <div>
+                      <p className="text-xs text-muted-foreground">Grade teach</p>
+                      <p className="font-medium">{viewUser.gradeTeach || 'N/A'}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-muted-foreground">Years experience</p>
+                      <p className="font-medium">
+                        {Number.isFinite(viewUser.yearsExperience) ? viewUser.yearsExperience : 'N/A'}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-muted-foreground">Training attended</p>
+                      <p className="font-medium">
+                        {viewUser.trainingAttended === true ? 'Yes' : viewUser.trainingAttended === false ? 'No' : 'N/A'}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-muted-foreground">Certification interest</p>
+                      <p className="font-medium">
+                        {viewUser.interestedInCertification ? 'Yes' : 'No'}
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardContent className="space-y-3 p-4">
+                  <p className="text-sm font-medium">Courses</p>
+                  <div className="space-y-3">
+                    <div>
+                      <p className="text-xs text-muted-foreground">Courses interested</p>
+                      <p className="font-medium">
+                        {Array.isArray(viewUser.coursesInterested) && viewUser.coursesInterested.length
+                          ? viewUser.coursesInterested.join(', ')
+                          : 'N/A'}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-muted-foreground">Other courses</p>
+                      <p className="font-medium">
+                        {Array.isArray(viewUser.coursesOther) && viewUser.coursesOther.length
+                          ? viewUser.coursesOther.join(', ')
+                          : 'N/A'}
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
             </div>
           )}
         </DialogContent>
