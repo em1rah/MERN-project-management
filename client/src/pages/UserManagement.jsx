@@ -13,7 +13,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import { Search, Inbox, Upload, AlertTriangle, ChevronLeft, ChevronRight, Eye, Pencil, Trash2, Download, FileDown } from 'lucide-react'
+import { Search, Inbox, Upload, AlertTriangle, ChevronLeft, ChevronRight, Eye, Pencil, Trash2, Download, FileDown, CheckCircle2, X } from 'lucide-react'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -55,7 +55,9 @@ export default function UserManagement({ onImported }) {
   const [editUser, setEditUser] = useState(null)
   const [editForm, setEditForm] = useState(null)
   const [editError, setEditError] = useState('')
+  const [editConfirmOpen, setEditConfirmOpen] = useState(false)
   const [deleteUser, setDeleteUser] = useState(null)
+  const [actionNotice, setActionNotice] = useState(null)
 
   const parseListInput = (value) =>
     String(value || '')
@@ -204,10 +206,21 @@ export default function UserManagement({ onImported }) {
       }
       await API.patch(`/admin/users/${editUser._id}`, payload)
       await fetchUsers()
+      setActionNotice({
+        variant: 'success',
+        title: 'User updated',
+        message: `${editUser.fullName || 'User'} was updated successfully.`,
+      })
       setEditUser(null)
       setEditForm(null)
     } catch (e) {
-      setEditError(e.response?.data?.msg || 'Failed to update user')
+      const message = e.response?.data?.msg || 'Failed to update user'
+      setEditError(message)
+      setActionNotice({
+        variant: 'error',
+        title: 'Update failed',
+        message,
+      })
     }
   }
 
@@ -216,8 +229,19 @@ export default function UserManagement({ onImported }) {
     try {
       await API.delete(`/admin/users/${deleteUser._id}`)
       await fetchUsers()
+      setActionNotice({
+        variant: 'success',
+        title: 'User deleted',
+        message: `${deleteUser.fullName || 'User'} was removed.`,
+      })
       setDeleteUser(null)
     } catch (e) {
+      const message = e.response?.data?.msg || 'Failed to delete user'
+      setActionNotice({
+        variant: 'error',
+        title: 'Delete failed',
+        message,
+      })
       console.error(e)
       setDeleteUser(null)
     }
@@ -265,6 +289,12 @@ export default function UserManagement({ onImported }) {
   useEffect(() => {
     setPage(1)
   }, [searchTerm, pageSize])
+
+  useEffect(() => {
+    if (!actionNotice) return
+    const timer = setTimeout(() => setActionNotice(null), 5000)
+    return () => clearTimeout(timer)
+  }, [actionNotice])
 
   if (loading)
     return (
@@ -346,6 +376,58 @@ export default function UserManagement({ onImported }) {
             <div>{importError}</div>
           </CardContent>
         </Card>
+      )}
+
+      {actionNotice && (
+        <div className="fixed left-1/2 top-6 z-50 w-[min(560px,92vw)] -translate-x-1/2">
+          <Card
+            className={
+              actionNotice.variant === 'success'
+                ? 'border-emerald-500/30 bg-emerald-500/10 shadow-lg'
+                : 'border-rose-500/30 bg-rose-500/10 shadow-lg'
+            }
+          >
+            <CardContent className="flex items-start justify-between gap-4 p-4 text-sm">
+              <div className="flex items-start gap-3">
+                {actionNotice.variant === 'success' ? (
+                  <CheckCircle2 className="mt-0.5 h-4 w-4 text-emerald-600 dark:text-emerald-300" />
+                ) : (
+                  <AlertTriangle className="mt-0.5 h-4 w-4 text-rose-600 dark:text-rose-300" />
+                )}
+                <div className="space-y-0.5">
+                  <p
+                    className={
+                      actionNotice.variant === 'success'
+                        ? 'text-emerald-800 dark:text-emerald-200'
+                        : 'text-rose-700 dark:text-rose-200'
+                    }
+                  >
+                    {actionNotice.title}
+                  </p>
+                  <p
+                    className={
+                      actionNotice.variant === 'success'
+                        ? 'text-emerald-700/80 dark:text-emerald-200/80'
+                        : 'text-rose-700/80 dark:text-rose-200/80'
+                    }
+                  >
+                    {actionNotice.message}
+                  </p>
+                </div>
+              </div>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 text-muted-foreground"
+                aria-label="Dismiss notification"
+                onClick={() => setActionNotice(null)}
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
       )}
 
       {importResult && (
@@ -687,12 +769,34 @@ export default function UserManagement({ onImported }) {
             <Button type="button" variant="outline" onClick={() => setEditUser(null)}>
               Cancel
             </Button>
-            <Button type="button" onClick={saveEdit}>
+            <Button type="button" onClick={() => setEditConfirmOpen(true)}>
               Save changes
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <AlertDialog open={editConfirmOpen} onOpenChange={setEditConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Save changes?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will update the user profile with your latest edits.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                setEditConfirmOpen(false)
+                saveEdit()
+              }}
+            >
+              Save changes
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <AlertDialog open={!!deleteUser} onOpenChange={(open) => !open && setDeleteUser(null)}>
         <AlertDialogContent>
