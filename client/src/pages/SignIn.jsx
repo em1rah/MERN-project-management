@@ -90,15 +90,8 @@ export default function SignIn() {
         </div>
         <div className="flex items-center justify-between">
           <label className="flex cursor-pointer items-center gap-2">
-            <input
-              type="checkbox"
-              checked={rememberMe}
-              onChange={(e) => setRememberMe(e.target.checked)}
-              className={cn(
-                'h-4 w-4 rounded border-input accent-primary'
-              )}
-            />
-            <span className="text-sm text-muted-foreground">Remember me</span>
+          
+          
           </label>
           <Link
             to="/forgot-password"
