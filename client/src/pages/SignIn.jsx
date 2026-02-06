@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label'
 import { AuthLayout } from '@/components/auth-layout'
 import { Mail, Lock, BookOpen } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import authIllustration from '@/assets/auth-illustration.png'
 
 export default function SignIn() {
   const [email, setEmail] = useState('')
@@ -44,6 +45,9 @@ export default function SignIn() {
     <AuthLayout
       headline="Adventure start here"
       subline="Sign in to access your trainee or admin dashboard."
+      illustrationSrc={authIllustration}
+      illustrationAlt="Sign in illustration"
+      contentClassName="max-w-3xl"
     >
       <div className="flex flex-col items-center text-center">
         {/* Logo */}
@@ -81,7 +85,7 @@ export default function SignIn() {
               id="password"
               required
               type="password"
-              placeholder="••••••••"
+              placeholder="********"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               className="h-10 pl-9"
@@ -89,9 +93,14 @@ export default function SignIn() {
           </div>
         </div>
         <div className="flex items-center justify-between">
-          <label className="flex cursor-pointer items-center gap-2">
-          
-          
+          <label className="flex cursor-pointer items-center gap-2 text-sm text-muted-foreground">
+            <input
+              type="checkbox"
+              checked={rememberMe}
+              onChange={(e) => setRememberMe(e.target.checked)}
+              className="h-4 w-4 rounded border-input accent-primary"
+            />
+            Remember me
           </label>
           <Link
             to="/forgot-password"
