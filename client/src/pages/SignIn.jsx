@@ -102,12 +102,6 @@ export default function SignIn() {
             />
             Remember me
           </label>
-          <Link
-            to="/forgot-password"
-            className="text-sm font-medium text-primary hover:underline"
-          >
-            Reset Password!
-          </Link>
         </div>
         <Button type="submit" className="h-10 w-full" disabled={loading}>
           {loading ? <span className="animate-pulse">Signing in...</span> : 'Login'}
